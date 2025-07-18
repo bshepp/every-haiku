@@ -1,4 +1,6 @@
-# Haiku Generator App Setup Instructions
+# Every Haiku - Setup Instructions
+
+**Version**: 2.0 (Updated for Firebase SDK v11, Node.js 20, and social features)
 
 ## Project Structure
 ```
@@ -77,7 +79,7 @@ Find these values in Firebase Console > Project Settings > Your apps > Web app
 ### 6. Set up Claude API key (for AI haikus)
 ```bash
 # Set the Claude API key as a Firebase function config
-firebase functions:config:set claude.api_key="YOUR_ANTHROPIC_API_KEY"
+firebase functions:secrets:set CLAUDE_API_KEY
 ```
 
 ### 7. Install dependencies
@@ -88,16 +90,21 @@ npm install
 cd ..
 ```
 
-### 8. Deploy
+### 8. Deploy indexes first
 ```bash
-# Deploy everything
+# Deploy Firestore indexes (required for queries)
+firebase deploy --only firestore:indexes
+```
+
+### 9. Deploy everything
+```bash
+# Deploy all services
 firebase deploy
 
 # Or deploy individually:
-# firebase deploy --only firestore:rules
-# firebase deploy --only firestore:indexes
-# firebase deploy --only functions
-# firebase deploy --only hosting
+firebase deploy --only firestore:rules
+firebase deploy --only functions
+firebase deploy --only hosting
 ```
 
 ## Running Locally
@@ -109,6 +116,8 @@ firebase emulators:start
 ```
 
 ## Features Implemented
+
+### Core Features (v1.0)
 - ✅ AI and non-AI haiku generation
 - ✅ User authentication with display names
 - ✅ Save haikus to personal collection
@@ -119,6 +128,15 @@ firebase emulators:start
 - ✅ Hashtag generation
 - ✅ Auto-cleanup of unsaved haikus after 30 days
 - ✅ Minimalist design
+
+### New Social Features (v2.0)
+- ✅ Enhanced user profiles (username, bio, social links)
+- ✅ Voting/liking system with real-time updates
+- ✅ User statistics tracking
+- ✅ Following system (backend ready)
+- ✅ Collections system (backend ready)
+- ✅ Rate limiting (10 requests/minute)
+- ✅ Input validation and XSS protection
 
 ## Future Enhancements for Mobile
 When ready to build mobile apps:
@@ -134,8 +152,27 @@ Currently configured for Claude (Anthropic), but you can easily switch:
 - **Google PaLM**: Use Google's Vertex AI
 - **Local model**: Host your own model and call it
 
-## Notes
-- The app uses Firebase's free tier limits by default
-- Consider implementing rate limiting for AI generation
-- Monitor your Claude API usage to control costs
-- The non-AI generation uses a simple template system that can be expanded
+## Important Notes
+
+### Security
+- All API keys in the code are placeholders - replace with your actual values
+- Rate limiting is enforced (10 requests/minute per user)
+- Input validation happens on the backend
+- Usernames are globally unique and can only be set once
+
+### Dependencies
+- Node.js 20 is required for Cloud Functions
+- Firebase SDK v11 is used in the frontend
+- Firebase Admin SDK v13 uses modular imports
+- All security vulnerabilities have been resolved
+
+### Costs
+- Firebase free tier is generous for starting
+- Monitor Claude API usage (approximately $0.00025 per haiku)
+- Consider setting budget alerts in Firebase Console
+
+### Development
+- All frontend code is in a single `index.html` file
+- ESLint must pass before deploying functions
+- Use Firebase emulators for local development
+- See `FUTURE_IMPROVEMENTS.md` for planned features

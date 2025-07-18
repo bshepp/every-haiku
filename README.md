@@ -5,9 +5,11 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Firebase](https://img.shields.io/badge/Firebase-11.x-orange.svg)
 ![Node](https://img.shields.io/badge/Node.js-20.x-green.svg)
+![Status](https://img.shields.io/badge/Status-Beta-yellow.svg)
 
 ## Features
 
+### Core Features
 - 🤖 **AI-Powered Generation**: Generate creative haikus using Anthropic's Claude API
 - 📝 **Template-Based Generation**: Classic haiku generation following 5-7-5 syllable pattern
 - 🔐 **User Authentication**: Secure email/password authentication with Firebase
@@ -19,14 +21,24 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 - 🐦 **Twitter Integration**: Share haikus directly to Twitter/X
 - 🧹 **Auto-Cleanup**: Automatic deletion of unsaved haikus after 30 days
 
+### New Social Features (v2.0)
+- 👤 **Enhanced User Profiles**: Customizable profiles with username, bio, website, and social links
+- ❤️ **Voting System**: Like and appreciate haikus from other users
+- 👥 **Following System**: Follow your favorite haiku creators (infrastructure ready)
+- 📚 **Collections**: Organize haikus into themed collections (backend ready)
+- 📊 **User Statistics**: Track your haikus, likes, followers, and following
+- 🔒 **Enhanced Security**: Rate limiting and input validation on all endpoints
+
 ## Tech Stack
 
 - **Frontend**: Vanilla JavaScript, TailwindCSS
-- **Backend**: Firebase Cloud Functions (Node.js 20)
-- **Database**: Cloud Firestore
-- **Authentication**: Firebase Auth
+- **Frontend**: Vanilla JavaScript (ES6+), TailwindCSS v3
+- **Backend**: Firebase Cloud Functions v6 (Node.js 20)
+- **Database**: Cloud Firestore with advanced indexing
+- **Authentication**: Firebase Auth with enhanced user profiles
 - **Hosting**: Firebase Hosting
 - **AI**: Anthropic Claude API
+- **Security**: Rate limiting, input validation, comprehensive security rules
 
 ## Project Structure
 
@@ -51,10 +63,11 @@ every-haiku/
 ## Prerequisites
 
 - Node.js (v20 or higher)
-- npm or yarn
+- npm (v10 or higher)
 - Firebase CLI (`npm install -g firebase-tools`)
-- Firebase project
+- Firebase project with Firestore, Auth, and Functions enabled
 - Anthropic API key (for AI haiku generation)
+- Git for version control
 
 ## Quick Start
 
@@ -95,6 +108,11 @@ every-haiku/
 7. **Set Claude API key**
    ```bash
    firebase functions:secrets:set CLAUDE_API_KEY
+   ```
+
+9. **Deploy Firestore indexes**
+   ```bash
+   firebase deploy --only firestore:indexes
    ```
 
 8. **Deploy**
@@ -143,18 +161,45 @@ firebase functions:config:set claude.api_key="YOUR_KEY"
 
 ## API Endpoints (Cloud Functions)
 
-- `generateAIHaiku`: Generate AI-powered haiku using Claude
+### Content Generation
+- `generateAIHaiku`: Generate AI-powered haiku using Claude (with rate limiting)
 - `generateHashtags`: Generate relevant hashtags for haikus
-- `getUserStats`: Get user statistics (total, saved, public haikus)
+
+### User Management
+- `updateProfile`: Update user profile information
+- `getUserStats`: Get comprehensive user statistics
+
+### Social Features
+- `toggleLike`: Like or unlike a haiku
+- `toggleFollow`: Follow or unfollow a user
+- `createCollection`: Create a new haiku collection
+- `addToCollection`: Add haiku to a collection
+
+### Maintenance
 - `cleanupOldHaikus`: Scheduled function to delete old unsaved haikus
 
 ## Security
 
-- Authentication required for saving haikus
+- Authentication required for saving haikus and social features
 - Users can only modify their own content
-- Public haikus visible to all users
-- API keys stored securely in Firebase config
-- Comprehensive Firestore security rules
+- Public haikus and profiles visible to all users
+- API keys stored securely using Firebase secrets
+- Comprehensive Firestore security rules with granular access control
+- Rate limiting on all API endpoints (10 requests/minute)
+- Input validation and sanitization
+- XSS protection in frontend
+- Username uniqueness enforcement
+
+## Project Status
+
+This project is currently in **Beta**. Core features are complete and stable. See `FUTURE_IMPROVEMENTS.md` for the roadmap of upcoming features.
+
+### Recent Updates (v2.0)
+- Enhanced user profiles with social features
+- Voting/liking system
+- Collections infrastructure
+- Major dependency updates (Firebase SDK v11, Admin SDK v13)
+- Security improvements
 
 ## Contributing
 
@@ -164,7 +209,10 @@ firebase functions:config:set claude.api_key="YOUR_KEY"
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Please read `AI_AGENT_GUIDELINES.md` for detailed development guidelines.
+Please read:
+- `AI_AGENT_GUIDELINES.md` for development guidelines
+- `FUTURE_IMPROVEMENTS.md` for planned features
+- `MIGRATION_GUIDE.md` for dependency update information
 
 ## License
 
