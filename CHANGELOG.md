@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Author information display on haikus
 - Comprehensive Firestore security rules for new features
 - Database indexes for efficient queries
+- Complete testing framework with Jest and Cypress
+- Unit tests for all Cloud Functions
+- Integration tests for Firestore security rules
+- End-to-end tests for user flows
+- Test coverage reporting
+- Automated test runner script
 
 ### Changed
 - Updated Firebase JS SDK from 10.7.1 to 11.10.0

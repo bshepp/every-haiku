@@ -4,23 +4,28 @@
 
 ## Project Structure
 ```
-haiku-generator/
+every-haiku/
 ├── public/
-│   └── index.html          # Main app file (from the HTML artifact)
+│   └── index.html              # Main application (SPA)
 ├── functions/
-│   ├── index.js           # Cloud Functions
-│   └── package.json       # Functions dependencies
-├── firebase.json          # Firebase configuration
-├── firestore.rules        # Security rules
-├── firestore.indexes.json # Database indexes
-└── README.md             # This file
+│   ├── index.js               # Cloud Functions (v2 API)
+│   ├── package.json           # Function dependencies
+│   ├── jest.config.js         # Jest configuration
+│   └── __tests__/             # Test files
+├── cypress/                   # E2E tests
+├── firebase.json              # Firebase configuration
+├── firestore.rules            # Security rules
+├── firestore-indexes.json     # Database indexes
+├── package.json               # Root dependencies
+└── test-all.sh               # Test runner
 ```
 
 ## Prerequisites
-1. Node.js (v16 or higher)
-2. Firebase CLI (`npm install -g firebase-tools`)
-3. A Firebase project
-4. An Anthropic API key (for Claude AI haikus)
+1. Node.js (v20 or higher) - Required for Firebase Functions
+2. npm (v10 or higher)
+3. Firebase CLI (`npm install -g firebase-tools`)
+4. A Firebase project with Blaze plan (for Cloud Functions)
+5. An Anthropic API key (for Claude AI haikus)
 
 ## Setup Steps
 

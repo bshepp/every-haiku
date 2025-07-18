@@ -1,0 +1,198 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: functions/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd functions
+        npm ci
+    
+    - name: Run unit tests
+      run: |
+        cd functions
+        npm test
+      env:
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: functions/coverage
+    
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: functions/package-lock.json
+    
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
+    
+    - name: Install dependencies
+      run: |
+        cd functions
+        npm ci
+    
+    - name: Start Firebase emulators
+      run: |
+        firebase emulators:start --only firestore,auth --project test-project &
+        sleep 10
+    
+    - name: Run integration tests
+      run: |
+        cd functions
+        npm test integration/
+    
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
+    
+    - name: Install functions dependencies
+      run: |
+        cd functions
+        npm ci
+        cd ..
+    
+    - name: Start Firebase emulators
+      run: |
+        firebase emulators:start --project test-project &
+        sleep 15
+      env:
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+    
+    - name: Run Cypress tests
+      uses: cypress-io/github-action@v6
+      with:
+        wait-on: 'http://localhost:5000'
+        wait-on-timeout: 120
+        config-file: cypress.config.js
+    
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: cypress/screenshots
+    
+    - name: Upload videos
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: cypress-videos
+        path: cypress/videos
+  
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: functions/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd functions
+        npm ci
+    
+    - name: Run ESLint
+      run: |
+        cd functions
+        npm run lint
+  
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      run: |
+        cd functions
+        npm ci
+    
+    - name: Run npm audit
+      run: |
+        cd functions
+        npm audit --audit-level=high
+    
+    - name: Run security scan
+      run: |
+        cd functions
+        npx snyk test || true
+
+  deploy-check:
+    name: Deployment Check
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, lint]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
+    
+    - name: Check deployment readiness
+      run: |
+        echo "All tests passed! Ready for deployment."
+        echo "To deploy, run: firebase deploy"

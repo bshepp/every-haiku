@@ -1,0 +1,49 @@
+{
+  "name": "every-haiku",
+  "version": "2.0.0",
+  "description": "AI-powered haiku generator with social features",
+  "private": true,
+  "scripts": {
+    "test": "./test-all.sh",
+    "test:unit": "cd functions && npm test",
+    "test:integration": "cd functions && npm test integration/",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "test:coverage": "cd functions && npm run test:coverage",
+    "emulators": "firebase emulators:start",
+    "emulators:test": "firebase emulators:start --only firestore,auth --project test-project",
+    "serve": "firebase serve",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:indexes": "firebase deploy --only firestore:indexes"
+  },
+  "devDependencies": {
+    "cypress": "^13.7.0",
+    "@firebase/testing": "^0.20.11",
+    "@firebase/rules-unit-testing": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/every-haiku.git"
+  },
+  "keywords": [
+    "haiku",
+    "poetry",
+    "ai",
+    "claude",
+    "firebase",
+    "social"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/every-haiku/issues"
+  },
+  "homepage": "https://github.com/yourusername/every-haiku#readme",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

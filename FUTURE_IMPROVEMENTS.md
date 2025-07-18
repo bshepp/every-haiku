@@ -4,9 +4,9 @@ This document outlines planned improvements ordered by implementation priority, 
 
 ## Priority 1: Core Data Model Changes (Backend Fundamentals)
 
-### 1.1 Enhanced User Profiles System
+### 1.1 Enhanced User Profiles System ✅ (Completed)
 **Why First**: Other features (voting, collections, social) depend on robust user data
-- **Data Model Changes**:
+- **Data Model Changes**: ✅ Implemented
   ```javascript
   users/{userId}: {
     displayName: string,
@@ -32,12 +32,12 @@ This document outlines planned improvements ordered by implementation priority, 
     updatedAt: timestamp
   }
   ```
-- **New Endpoints**: updateProfile, getProfile, uploadAvatar
-- **Username uniqueness enforcement**
+- **New Endpoints**: updateProfile ✅, getProfile (partial), uploadAvatar (pending)
+- **Username uniqueness enforcement** ✅
 
-### 1.2 Voting/Liking System
+### 1.2 Voting/Liking System ✅ (Completed)
 **Why Early**: Affects haiku data model and requires user association
-- **Data Model Changes**:
+- **Data Model Changes**: ✅ Implemented
   ```javascript
   haikus/{haikuId}: {
     ...existing,
@@ -45,12 +45,15 @@ This document outlines planned improvements ordered by implementation priority, 
     likedBy: array<userId> // For quick duplicate checks
   }
   
-  userLikes/{userId}/likes/{haikuId}: {
-    likedAt: timestamp
+  likes/{userId}_{haikuId}: {
+    userId: string,
+    haikuId: string,
+    createdAt: timestamp
   }
   ```
-- **Real-time like counts**
-- **Prevent duplicate likes**
+- **Real-time like counts** ✅
+- **Prevent duplicate likes** ✅
+- **toggleLike Cloud Function** ✅
 
 ### 1.3 Collections & Categories System
 **Why Early**: Fundamental organization structure
@@ -189,7 +192,7 @@ This document outlines planned improvements ordered by implementation priority, 
 
 ### 5.4 DevOps Improvements
 - **CI/CD pipeline**
-- **Automated testing**
+- **Automated testing** ✅ (Completed - Jest + Cypress framework)
 - **Feature flags**
 - **Blue-green deployments**
 

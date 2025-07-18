@@ -31,7 +31,6 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 
 ## Tech Stack
 
-- **Frontend**: Vanilla JavaScript, TailwindCSS
 - **Frontend**: Vanilla JavaScript (ES6+), TailwindCSS v3
 - **Backend**: Firebase Cloud Functions v6 (Node.js 20)
 - **Database**: Cloud Firestore with advanced indexing
@@ -45,19 +44,40 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 ```
 every-haiku/
 ├── public/
-│   └── index.html          # Main application (SPA)
+│   └── index.html              # Main application (SPA)
 ├── functions/
-│   ├── index.js           # Cloud Functions
-│   ├── package.json       # Function dependencies
-│   └── .eslintrc.js       # ESLint configuration
-├── firebase.json          # Firebase configuration
-├── firestore.rules        # Security rules
-├── firestore.indexes.json # Database indexes
-├── .gitignore            # Git ignore file
-├── README.md             # This file
-├── requirements.txt      # Project requirements
-├── setup-instructions.md # Detailed setup guide
-└── AI_AGENT_GUIDELINES.md # Guidelines for AI developers
+│   ├── index.js               # Cloud Functions (v2 API)
+│   ├── package.json           # Function dependencies
+│   ├── jest.config.js         # Jest test configuration
+│   ├── .eslintrc.js           # ESLint configuration
+│   └── __tests__/             # Unit and integration tests
+├── cypress/
+│   ├── e2e/                   # End-to-end tests
+│   ├── support/               # Test utilities
+│   └── plugins/               # Cypress plugins
+├── .github/
+│   └── workflows/
+│       └── test.yml           # CI/CD pipeline
+├── firebase.json              # Firebase configuration
+├── firestore.rules            # Security rules
+├── firestore-indexes.json     # Database indexes
+├── cypress.config.js          # Cypress configuration
+├── package.json               # Root package configuration
+├── test-all.sh               # Test runner script
+├── .gitignore                # Git ignore file
+├── LICENSE                   # MIT License
+└── Documentation/
+    ├── README.md             # This file
+    ├── CHANGELOG.md          # Version history
+    ├── TESTING.md            # Testing guide
+    ├── PROJECT_STATUS.md     # Current status
+    ├── PROJECT_REVIEW.md     # Comprehensive review
+    ├── FUTURE_IMPROVEMENTS.md # Roadmap
+    ├── MIGRATION_GUIDE.md    # v1 to v2 guide
+    ├── CI_CD_SETUP.md        # CI/CD guide
+    ├── setup-instructions.md # Setup guide
+    ├── AI_AGENT_GUIDELINES.md # AI dev guidelines
+    └── CLAUDE.md             # Claude-specific docs
 ```
 
 ## Prerequisites
@@ -135,6 +155,32 @@ firebase deploy --only functions
 firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 ```
+
+## Testing
+
+The project includes a comprehensive testing framework with unit, integration, and end-to-end tests.
+
+### Test Stack
+- **Unit Tests**: Jest for Cloud Functions
+- **Integration Tests**: Firebase Emulator + Jest for Firestore rules
+- **E2E Tests**: Cypress for user flows
+
+### Quick Test Commands
+```bash
+# Run all tests
+./test-all.sh
+
+# Run unit tests
+cd functions && npm test
+
+# Run E2E tests
+npx cypress open
+
+# Run tests with coverage
+cd functions && npm run test:coverage
+```
+
+See `TESTING.md` for detailed testing documentation.
 
 ## Configuration
 
