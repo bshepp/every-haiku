@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+    
+    // Haikus collection
+    match /haikus/{haikuId} {
+      // Anyone can read public haikus
+      allow read: if resource.data.isPublic == true;
+      
+      // Authenticated users can read their own haikus
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Authenticated users can create haikus
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['content', 'theme', 'isAI', 'createdAt', 'isPublic', 'isSaved']);
+      
+      // Users can update their own haikus (for making public or saving)
+      allow update: if isOwner(resource.data.userId) &&
+        request.resource.data.userId == resource.data.userId;
+      
+      // Users can delete their own haikus
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // User's saved haikus
+    match /userHaikus/{userId}/saved/{haikuId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+  }
+}

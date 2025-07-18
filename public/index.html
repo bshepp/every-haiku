@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haiku Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-functions-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&display=swap');
+        body {
+            font-family: 'Noto Serif JP', serif;
+        }
+        .haiku-text {
+            line-height: 1.8;
+            letter-spacing: 0.05em;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-light">Haiku Generator</h1>
+                <div class="flex gap-4">
+                    <button id="homeBtn" class="text-gray-600 hover:text-gray-900">Generate</button>
+                    <button id="savedBtn" class="text-gray-600 hover:text-gray-900">Saved</button>
+                    <button id="galleryBtn" class="text-gray-600 hover:text-gray-900">Gallery</button>
+                    <button id="statsBtn" class="text-gray-600 hover:text-gray-900 hidden">Stats</button>
+                    <button id="authBtn" class="text-gray-600 hover:text-gray-900">Sign In</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Home View -->
+        <div id="homeView" class="space-y-8">
+            <div class="text-center space-y-4">
+                <input 
+                    id="themeInput" 
+                    type="text" 
+                    placeholder="Enter a theme (optional)"
+                    class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                />
+                
+                <div class="flex justify-center items-center gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" id="aiToggle" class="rounded">
+                        <span class="text-sm text-gray-600">Use AI</span>
+                    </label>
+                </div>
+
+                <button 
+                    id="generateBtn"
+                    class="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
+                >
+                    Generate Haiku
+                </button>
+            </div>
+
+            <div id="haikuDisplay" class="hidden fade-in">
+                <div class="bg-white p-8 rounded-lg shadow-sm text-center">
+                    <p id="haikuText" class="haiku-text text-lg mb-4"></p>
+                    <p id="haikuHashtags" class="text-sm text-gray-500 mb-6"></p>
+                    
+                    <div class="flex justify-center gap-4">
+                        <button id="copyBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                            Copy
+                        </button>
+                        <button id="saveBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                            Save
+                        </button>
+                        <button id="shareTwitterBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                            Share on X
+                        </button>
+                        <button id="makePublicBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                            Make Public
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved View -->
+        <div id="savedView" class="hidden space-y-4">
+            <h2 class="text-2xl font-light text-center mb-6">Saved Haikus</h2>
+            <input 
+                id="searchInput" 
+                type="text" 
+                placeholder="Search your haikus..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mb-6"
+            />
+            <div id="savedHaikusList" class="space-y-4"></div>
+        </div>
+
+        <!-- Gallery View -->
+        <div id="galleryView" class="hidden space-y-4">
+            <h2 class="text-2xl font-light text-center mb-6">Public Gallery</h2>
+            <div id="galleryList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Stats View -->
+        <div id="statsView" class="hidden space-y-4">
+            <h2 class="text-2xl font-light text-center mb-6">Your Haiku Statistics</h2>
+            <div id="statsDisplay" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+                    <h3 class="text-3xl font-light mb-2" id="totalCount">-</h3>
+                    <p class="text-gray-600">Total Haikus</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+                    <h3 class="text-3xl font-light mb-2" id="savedCount">-</h3>
+                    <p class="text-gray-600">Saved Haikus</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+                    <h3 class="text-3xl font-light mb-2" id="publicCount">-</h3>
+                    <p class="text-gray-600">Public Haikus</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg max-w-sm w-full">
+                <h3 class="text-xl font-light mb-4">Sign In / Sign Up</h3>
+                <input 
+                    id="displayNameInput" 
+                    type="text" 
+                    placeholder="Display Name"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                />
+                <input 
+                    id="emailInput" 
+                    type="email" 
+                    placeholder="Email"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                />
+                <input 
+                    id="passwordInput" 
+                    type="password" 
+                    placeholder="Password"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                />
+                <div class="flex gap-4">
+                    <button id="signInBtn" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                        Sign In
+                    </button>
+                    <button id="signUpBtn" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Sign Up
+                    </button>
+                </div>
+                <button id="closeAuthBtn" class="w-full mt-4 text-sm text-gray-500 hover:text-gray-700">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration - REPLACE WITH YOUR CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // App State
+        let currentUser = null;
+        let currentHaiku = null;
+        let currentView = 'home';
+
+        // Syllable counting data
+        const syllableData = {
+            1: ['sun', 'moon', 'rain', 'snow', 'wind', 'cloud', 'tree', 'leaf', 'bird', 'sky', 'pond', 'frog', 'stone', 'path', 'night', 'day', 'spring', 'fall', 'peace', 'calm', 'light', 'dark', 'soft', 'still', 'cool', 'warm', 'sweet', 'fresh', 'old', 'new'],
+            2: ['morning', 'evening', 'winter', 'summer', 'autumn', 'mountain', 'river', 'garden', 'temple', 'cherry', 'blossom', 'gentle', 'silence', 'petals', 'shadow', 'moonlight', 'water', 'quiet', 'empty', 'ancient', 'golden', 'silver', 'drifting', 'floating', 'dancing'],
+            3: ['butterfly', 'dragonfly', 'waterfall', 'memories', 'reflection', 'solitude', 'tranquility', 'meditation', 'awakening', 'whispering', 'blossoming', 'wandering', 'listening', 'wondering', 'following']
+        };
+
+        // Haiku templates for non-AI generation
+        const haikuTemplates = [
+            { line1: [2, 3], line2: [2, 2, 3], line3: [1, 2, 2] },
+            { line1: [3, 2], line2: [1, 3, 3], line3: [2, 3] },
+            { line1: [1, 1, 3], line2: [2, 1, 2, 2], line3: [1, 1, 3] }
+        ];
+
+        // Generate non-AI haiku
+        function generateNonAIHaiku(theme) {
+            const template = haikuTemplates[Math.floor(Math.random() * haikuTemplates.length)];
+            
+            const generateLine = (syllablePattern) => {
+                return syllablePattern.map(count => {
+                    const words = syllableData[count];
+                    return words[Math.floor(Math.random() * words.length)];
+                }).join(' ');
+            };
+
+            const line1 = generateLine(template.line1);
+            const line2 = generateLine(template.line2);
+            const line3 = generateLine(template.line3);
+
+            return `${line1}\n${line2}\n${line3}`;
+        }
+
+        // Generate hashtags using Cloud Function
+        async function generateHashtags(theme, haiku) {
+            const functions = firebase.functions();
+            const generateHashtagsFunc = functions.httpsCallable('generateHashtags');
+            
+            try {
+                const result = await generateHashtagsFunc({ theme, content: haiku });
+                return result.data;
+            } catch (error) {
+                console.error('Error generating hashtags:', error);
+                // Fallback to basic hashtags
+                const baseHashtags = ['#haiku', '#poetry', '#mindfulness'];
+                if (theme) {
+                    baseHashtags.push(`#${theme.toLowerCase().replace(/\s+/g, '')}`);
+                }
+                return baseHashtags.slice(0, 5);
+            }
+        }
+
+        // Generate AI haiku using Cloud Function
+        async function generateAIHaiku(theme) {
+            const functions = firebase.functions();
+            const generateAIHaikuFunc = functions.httpsCallable('generateAIHaiku');
+            
+            try {
+                const result = await generateAIHaikuFunc({ theme });
+                return result.data.haiku;
+            } catch (error) {
+                console.error('Error generating AI haiku:', error);
+                // Fallback to template-based generation if AI fails
+                console.log('Falling back to template-based generation');
+                return generateNonAIHaiku(theme);
+            }
+        }
+
+        // View Management
+        function showView(view) {
+            currentView = view;
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('savedView').classList.add('hidden');
+            document.getElementById('galleryView').classList.add('hidden');
+            document.getElementById('statsView').classList.add('hidden');
+            
+            document.getElementById(`${view}View`).classList.remove('hidden');
+            
+            if (view === 'saved' && currentUser) {
+                loadSavedHaikus();
+            } else if (view === 'gallery') {
+                loadGalleryHaikus();
+            } else if (view === 'stats' && currentUser) {
+                loadUserStats();
+            }
+        }
+
+        // Auth Functions
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            const authBtn = document.getElementById('authBtn');
+            const statsBtn = document.getElementById('statsBtn');
+            if (user) {
+                authBtn.textContent = 'Sign Out';
+                statsBtn.classList.remove('hidden');
+            } else {
+                authBtn.textContent = 'Sign In';
+                statsBtn.classList.add('hidden');
+            }
+        });
+
+        // Event Listeners
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const theme = document.getElementById('themeInput').value;
+            const useAI = document.getElementById('aiToggle').checked;
+            
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            
+            try {
+                let haikuText;
+                if (useAI) {
+                    haikuText = await generateAIHaiku(theme);
+                } else {
+                    haikuText = generateNonAIHaiku(theme);
+                }
+                
+                const hashtags = await generateHashtags(theme, haikuText);
+                
+                // Save to Firestore and get the document ID
+                const haikuData = {
+                    content: haikuText,
+                    theme: theme || 'general',
+                    isAI: useAI,
+                    hashtags: hashtags,
+                    userId: currentUser ? currentUser.uid : null,
+                    isPublic: false,
+                    isSaved: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                let haikuId = null;
+                if (currentUser) {
+                    const docRef = await db.collection('haikus').add(haikuData);
+                    haikuId = docRef.id;
+                }
+                
+                currentHaiku = {
+                    ...haikuData,
+                    id: haikuId
+                };
+                
+                document.getElementById('haikuText').textContent = haikuText;
+                document.getElementById('haikuHashtags').textContent = hashtags.join(' ');
+                document.getElementById('haikuDisplay').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error generating haiku:', error);
+                alert('Error generating haiku. Please try again.');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Haiku';
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (currentHaiku) {
+                const text = `${currentHaiku.content}\n\n${currentHaiku.hashtags.join(' ')}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                    }, 2000);
+                });
+            }
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+            
+            if (currentHaiku && currentHaiku.id) {
+                try {
+                    // Update existing haiku instead of creating duplicate
+                    const batch = db.batch();
+                    
+                    // Update haiku document
+                    batch.update(db.collection('haikus').doc(currentHaiku.id), {
+                        isSaved: true,
+                        savedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Add to user's saved collection
+                    batch.set(db.collection('userHaikus').doc(currentUser.uid)
+                        .collection('saved').doc(currentHaiku.id), {
+                        savedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await batch.commit();
+                    
+                    const saveBtn = document.getElementById('saveBtn');
+                    saveBtn.textContent = 'Saved!';
+                    setTimeout(() => {
+                        saveBtn.textContent = 'Save';
+                    }, 2000);
+                } catch (error) {
+                    console.error('Error saving haiku:', error);
+                    alert('Error saving haiku. Please try again.');
+                }
+            }
+        });
+
+        document.getElementById('shareTwitterBtn').addEventListener('click', () => {
+            if (currentHaiku) {
+                const text = `${currentHaiku.content}\n\n${currentHaiku.hashtags.join(' ')}`;
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            }
+        });
+
+        document.getElementById('makePublicBtn').addEventListener('click', async () => {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+            
+            if (currentHaiku) {
+                try {
+                    if (currentHaiku.id) {
+                        // Update existing haiku
+                        await db.collection('haikus').doc(currentHaiku.id).update({
+                            isPublic: true,
+                            isSaved: true,
+                            madePublicAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } else {
+                        // Create new haiku if no ID exists
+                        const haikuRef = await db.collection('haikus').add({
+                            ...currentHaiku,
+                            userId: currentUser.uid,
+                            isPublic: true,
+                            isSaved: true
+                        });
+                        currentHaiku.id = haikuRef.id;
+                    }
+                    
+                    const btn = document.getElementById('makePublicBtn');
+                    btn.textContent = 'Made Public!';
+                    setTimeout(() => {
+                        btn.textContent = 'Make Public';
+                    }, 2000);
+                } catch (error) {
+                    console.error('Error making haiku public:', error);
+                    alert('Error making haiku public. Please try again.');
+                }
+            }
+        });
+
+        // Navigation
+        document.getElementById('homeBtn').addEventListener('click', () => showView('home'));
+        document.getElementById('savedBtn').addEventListener('click', () => {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+            showView('saved');
+        });
+        document.getElementById('galleryBtn').addEventListener('click', () => showView('gallery'));
+        document.getElementById('statsBtn').addEventListener('click', () => {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+            showView('stats');
+        });
+
+        // Auth
+        document.getElementById('authBtn').addEventListener('click', () => {
+            if (currentUser) {
+                auth.signOut();
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('signUpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const displayName = document.getElementById('displayNameInput').value;
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    displayName: displayName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('authModal').classList.add('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        document.getElementById('signInBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                document.getElementById('authModal').classList.add('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        document.getElementById('closeAuthBtn').addEventListener('click', () => {
+            document.getElementById('authModal').classList.add('hidden');
+        });
+
+        // Load saved haikus
+        async function loadSavedHaikus() {
+            if (!currentUser) return;
+            
+            const savedHaikusList = document.getElementById('savedHaikusList');
+            savedHaikusList.innerHTML = '';
+            
+            try {
+                const snapshot = await db.collection('userHaikus')
+                    .doc(currentUser.uid)
+                    .collection('saved')
+                    .orderBy('savedAt', 'desc')
+                    .get();
+                
+                for (const doc of snapshot.docs) {
+                    const haikuDoc = await db.collection('haikus').doc(doc.data().haikuRef).get();
+                    if (haikuDoc.exists) {
+                        const haiku = haikuDoc.data();
+                        const haikuEl = createHaikuElement(haiku, haikuDoc.id);
+                        savedHaikusList.appendChild(haikuEl);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading saved haikus:', error);
+            }
+        }
+
+        // Load gallery haikus
+        async function loadGalleryHaikus() {
+            const galleryList = document.getElementById('galleryList');
+            galleryList.innerHTML = '';
+            
+            try {
+                const snapshot = await db.collection('haikus')
+                    .where('isPublic', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
+                
+                snapshot.forEach(doc => {
+                    const haiku = doc.data();
+                    const haikuEl = createHaikuElement(haiku, doc.id);
+                    galleryList.appendChild(haikuEl);
+                });
+            } catch (error) {
+                console.error('Error loading gallery haikus:', error);
+            }
+        }
+
+        // Create haiku element
+        function createHaikuElement(haiku, id) {
+            const div = document.createElement('div');
+            div.className = 'bg-white p-6 rounded-lg shadow-sm fade-in';
+            div.innerHTML = `
+                <p class="haiku-text mb-2">${haiku.content.replace(/\n/g, '<br>')}</p>
+                <p class="text-sm text-gray-500 mb-2">${haiku.hashtags.join(' ')}</p>
+                <div class="flex items-center justify-between text-xs text-gray-400">
+                    <span>${haiku.isAI ? 'AI Generated' : 'Classic Style'}</span>
+                    <span>${haiku.theme || 'General'}</span>
+                </div>
+            `;
+            return div;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const haikus = document.querySelectorAll('#savedHaikusList > div');
+            
+            haikus.forEach(haiku => {
+                const text = haiku.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    haiku.style.display = 'block';
+                } else {
+                    haiku.style.display = 'none';
+                }
+            });
+        });
+
+        // Load user stats
+        async function loadUserStats() {
+            if (!currentUser) return;
+            
+            try {
+                const functions = firebase.functions();
+                const getUserStatsFunc = functions.httpsCallable('getUserStats');
+                const result = await getUserStatsFunc();
+                
+                document.getElementById('totalCount').textContent = result.data.total;
+                document.getElementById('savedCount').textContent = result.data.saved;
+                document.getElementById('publicCount').textContent = result.data.public;
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+                document.getElementById('totalCount').textContent = '?';
+                document.getElementById('savedCount').textContent = '?';
+                document.getElementById('publicCount').textContent = '?';
+            }
+        }
+    </script>
+</body>
+</html>
