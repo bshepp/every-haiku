@@ -1,0 +1,39 @@
+Initial commit: Every Haiku - AI-powered haiku generator
+
+Features:
+- AI-powered haiku generation using Claude API
+- Template-based non-AI generation (5-7-5 syllable pattern)
+- User authentication with Firebase Auth
+- Personal haiku collections
+- Public gallery for sharing
+- Automatic hashtag generation
+- Social media sharing integration
+- Auto-cleanup of old unsaved haikus
+
+Tech stack:
+- Frontend: Vanilla JavaScript, TailwindCSS, Firebase SDK v11
+- Backend: Firebase Cloud Functions (Node.js 20)
+- Database: Cloud Firestore
+- AI: Anthropic Claude API
+
+Recent updates:
+- Updated all dependencies to latest stable versions
+- Fixed critical security vulnerabilities
+- Migrated to Firebase Admin SDK v13 (modular API)
+- Migrated to Firebase Functions v6 (v2 API)
+- Added rate limiting and input validation
+- Connected AI generation to actual Cloud Function
+- Fixed data duplication issues
+- Added user statistics dashboard
+
+Security:
+- All API keys are placeholders
+- Comprehensive .gitignore for sensitive files
+- Input sanitization and XSS protection
+- Rate limiting on API endpoints
+
+Documentation:
+- Comprehensive README with setup instructions
+- Implementation plan for future enhancements
+- Migration guide for dependency updates
+- AI agent guidelines for development
