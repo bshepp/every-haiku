@@ -171,5 +171,5 @@ firebase deploy --only firestore:indexes
 ## 📞 Support
 
 - **Documentation**: See full docs in project root
-- **Issues**: https://github.com/bshepp/Haiku/issues
+- **Issues**: https://github.com/bshepp/every-haiku/issues
 - **Updates**: Check `CHANGELOG.md` for version history

@@ -1,43 +1,28 @@
-# CI/CD Setup Guide - Every Haiku
+# CI/CD Setup
 
-This guide explains how to set up Continuous Integration and Continuous Deployment for the Every Haiku project.
+The GitHub Actions workflow file exists at `.github/workflows/test.yml`.
 
-## Overview
+## To Enable CI
 
-The CI/CD pipeline ensures code quality and automates testing before deployment. It includes:
+1. Go to your GitHub repo Settings → Secrets and variables → Actions
+2. Add these secrets:
+   - `CLAUDE_API_KEY` - Your Anthropic API key
+   - `FIREBASE_TOKEN` - Optional, from `firebase login:ci`
 
-1. **Unit Tests** - Test Cloud Functions in isolation
-2. **Integration Tests** - Test Firestore security rules
-3. **E2E Tests** - Test complete user flows
-4. **Linting** - Code style enforcement
-5. **Security Scanning** - Vulnerability detection
-
-## GitHub Actions Setup
-
-### 1. Repository Secrets
-
-Add the following secrets to your GitHub repository (Settings > Secrets and variables > Actions):
-
-```
-CLAUDE_API_KEY - Your Anthropic API key
-FIREBASE_TOKEN - Firebase CI token (optional for deployment)
-```
-
-To get Firebase token:
-```bash
-firebase login:ci
-```
-
-### 2. Enable GitHub Actions
-
-The workflow file is already created at `.github/workflows/test.yml`. It will run automatically on:
-- Push to `main` or `develop` branches
+Tests will run automatically on:
+- Push to `main`
 - Pull requests to `main`
 
-### 3. Branch Protection
+## What It Tests
 
-Recommended branch protection rules for `main`:
-- Require pull request reviews
+- Unit tests (Jest)
+- Integration tests (Firebase Emulator)
+- E2E tests (Cypress)
+- Linting
+
+## Note
+
+Tests are configured but not yet verified as passing. You may need to debug them before enabling CI/CD.
 - Require status checks to pass:
   - `unit-tests`
   - `integration-tests`

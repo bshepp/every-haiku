@@ -1,54 +1,50 @@
-# Every Haiku - Comprehensive Implementation Plan
+# Implementation Notes
 
-## Executive Summary
+## Frontend Refactoring Needed
 
-This implementation plan addresses critical deficiencies found in the Every Haiku application after thorough analysis. The plan is organized by priority, with estimated timelines and specific technical solutions.
+The frontend is currently 885 lines in a single HTML file. If continuing development, split into:
+- `js/auth.js` - Authentication logic
+- `js/haiku.js` - Haiku generation and display
+- `js/gallery.js` - Gallery and social features
+- `js/profile.js` - User profile management
+- `js/app.js` - Main app initialization
 
-## 🔴 Critical Issues (Immediate - 1-2 days)
+This will make the code much easier to maintain and debug.
 
-### 1. Fix AI Haiku Generation
-**Problem**: Frontend uses mock data instead of calling the Cloud Function
-**Solution**:
-```javascript
-// Replace the mock generateAIHaiku function with:
-async function generateAIHaiku(theme) {
-    const generateAIHaikuFunc = firebase.functions().httpsCallable('generateAIHaiku');
-    try {
-        const result = await generateAIHaikuFunc({ theme });
-        return result.data.haiku;
-    } catch (error) {
-        console.error('Error generating AI haiku:', error);
-        throw error;
-    }
-}
-```
+## Known Issues to Fix
 
-### 2. Firebase Configuration Setup
-**Problem**: Placeholder configuration values
-**Solution**:
-- Create `.env.example` file with required variables
-- Update deployment documentation
-- Add configuration validation on startup
+1. **Rate Limiting**: Currently in-memory, will reset if function restarts
+   - Solution: Use Firestore to track rate limits persistently
 
-### 3. Security Vulnerabilities
-**Problems & Solutions**:
+2. **Gallery Pagination**: No pagination - will load all haikus
+   - Solution: Implement pagination with cursor-based navigation
 
-#### XSS Protection
-```javascript
-// Replace innerHTML with textContent
-function createHaikuElement(haiku, id) {
-    const div = document.createElement('div');
-    div.className = 'bg-white p-6 rounded-lg shadow-sm fade-in';
-    
-    const contentP = document.createElement('p');
-    contentP.className = 'haiku-text mb-2';
-    contentP.textContent = haiku.content;
-    // Preserve line breaks safely
-    contentP.innerHTML = contentP.textContent.split('\\n').map(line => 
-        document.createElement('div').appendChild(document.createTextNode(line)).parentNode.innerHTML
-    ).join('<br>');
-    
-    div.appendChild(contentP);
+3. **Error Messages**: Minimal user feedback on failures
+   - Solution: Add toast notifications or better error dialogs
+
+4. **Profile Pictures**: Avatars designed but not implemented
+   - Solution: Add Firebase Storage integration
+
+## If Implementing Missing v2.0 Features
+
+### Collections UI (20 hours)
+- Create/edit/delete collections
+- Add haikus to collections
+- Display collections on profile
+- Share collections
+
+### Following UI (10 hours)
+- Display followers/following lists
+- Follow/unfollow buttons on profiles
+- Activity feed (optional, harder)
+
+### Other Nice-to-Haves
+- Gallery pagination
+- Better error messages
+- Input validation feedback
+- Profile picture upload
+- Comment system
+- Daily challenges
     // ... rest of element creation
 }
 ```

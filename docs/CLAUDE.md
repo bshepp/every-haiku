@@ -1,12 +1,15 @@
 # CLAUDE.md
 
+**Name:** Every Haiku Creator
+**Role:** Firebase haiku generation and social platform specialist
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Overview
 
 Every Haiku is a Firebase-based single-page application for generating, saving, and sharing haikus. It features both AI-powered generation (using Claude API) and template-based generation following traditional 5-7-5 syllable patterns.
 
-**Current Version**: 2.0 (Beta) - Added social features including user profiles, voting system, and collections infrastructure.
+**Current Version**: 2.0 (Beta) - Core features working, v2.0 social features partially done (backend mostly complete, UI incomplete)
 
 ## Architecture Updates (v2.0)
 
@@ -132,32 +135,30 @@ firebase functions:secrets:access CLAUDE_API_KEY
 
 ## Important Notes
 
-- **API Keys**: Claude API key must be set via Firebase config, never committed to code
-- **Single HTML file**: All frontend changes must be made in `public/index.html` - do not create separate JS files
-- **ESLint required**: Functions must pass linting before deployment (`npm run lint`)
+- **API Keys**: Claude API key set via `firebase functions:secrets:set CLAUDE_API_KEY`, never committed
+- **Single file frontend**: All code in `public/index.html` (885 lines - consider refactoring)
+- **Deployment**: `firebase deploy` (requires `.firebaserc` setup first)
 - **Emulator ports**: Auth (9099), Functions (5001), Firestore (8080), Hosting (5000)
-- **Node version**: Functions require Node.js 20 (specified in package.json)
-- **Firebase versions**: JS SDK v11, Admin SDK v13, Functions v6 (v2 API)
-- **Security**: Rate limiting enforced, input validation required
-- **No unit tests**: Project currently has no test suite - manual testing required
+- **Node**: Functions require Node.js 20
+- **Rate limiting**: 10 req/min per user (server-side, in-memory)
+- **Tests**: Jest + Cypress configured, status unknown
 
-## New Features (v2.0)
+## What's Actually Working
 
-### User Profiles
-- Username system with uniqueness enforcement
-- Bio, website, and social links
-- Profile management UI at `/profile`
-- Stats tracking (haikus, likes, followers)
+- AI haiku generation (Claude API)
+- Template-based haiku generation (fallback)
+- User authentication (email/password)
+- Save/search haikus
+- Public gallery with likes
+- User profiles (basic - username, bio, links)
+- Share on Twitter/X
+- Auto-cleanup of old haikus
 
-### Social Features
-- Like/unlike haikus with real-time counts
-- Author information displayed on haikus
-- Following system (backend ready, UI pending)
-- Collections system (backend ready, UI pending)
+## What's Incomplete
 
-### Testing Social Features
-1. Create multiple test accounts
-2. Generate haikus and test liking
-3. Update profiles and verify username uniqueness
-4. Check stats update correctly
-5. Verify security rules prevent unauthorized access
+- Collections UI (backend exists)
+- Following/followers UI (backend exists)
+- Activity feed (not started)
+- Gallery pagination (no pagination)
+- Profile pictures (not implemented)
+- Form validation (minimal UX feedback)

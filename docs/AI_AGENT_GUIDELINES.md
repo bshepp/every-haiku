@@ -1,52 +1,63 @@
-# AI Agent Design Guidelines for Every Haiku
+# Notes for Developers
 
-**Version**: 2.0 (Updated with social features)
+## Stack
 
-## Project Overview
+- Frontend: 885 lines of vanilla JS in `public/index.html`
+- Backend: Firebase Cloud Functions in `functions/index.js`
+- Database: Cloud Firestore
+- Auth: Firebase Auth (email/password)
+- AI: Claude API via Cloud Functions
 
-Every Haiku is a Firebase-based web application that generates, manages, and shares haikus. The app features both AI-powered (via Claude API) and template-based haiku generation, with user authentication, personal collections, public gallery, and social features including profiles, voting, and collections.
+## Quick Start
 
-## Architecture Overview
+```bash
+# Install deps
+cd functions && npm install && cd ..
 
-### Technology Stack
-- **Frontend**: Vanilla JavaScript (ES6+) with TailwindCSS v3 (single HTML file)
-- **Backend**: Firebase Cloud Functions v6 (Node.js 20)
-- **Database**: Cloud Firestore with advanced indexing
-- **Authentication**: Firebase Auth (Email/Password) with enhanced profiles
-- **Hosting**: Firebase Hosting
-- **AI Integration**: Anthropic Claude API
-- **Security**: Rate limiting, input validation, XSS protection
+# Run locally
+firebase emulators:start
 
-### Project Structure
-```
-/
-├── public/
-│   └── index.html          # Main application (single-page app)
-├── functions/
-│   ├── index.js           # Cloud Functions backend
-│   ├── package.json       # Functions dependencies
-│   └── .eslintrc.js       # ESLint configuration
-├── firebase.json          # Firebase configuration
-├── firestore.rules        # Security rules
-├── firestore.indexes.json # Database indexes
-├── .gitignore            # Git ignore file
-├── README.md             # Project overview
-├── requirements.txt      # Project requirements
-├── setup-instructions.md # Deployment guide
-└── AI_AGENT_GUIDELINES.md # This file
+# Deploy
+firebase deploy
 ```
 
-## Core Features
+## Key Files
 
-1. **Haiku Generation**
-   - AI-powered generation using Claude API
-   - Template-based non-AI generation (5-7-5 syllable pattern)
-   - Theme-based generation support
+- `public/index.html` - Everything frontend (views, events, haiku generation)
+- `functions/index.js` - All Cloud Functions (haiku generation, profiles, likes)
+- `firestore.rules` - Database security
+- `firestore-indexes.json` - Database indexes
 
-2. **User Management**
-   - Email/password authentication
-   - Display name support
-   - Personal haiku collections
+## What Works
+
+- Generate haikus (AI or template)
+- Auth and profiles
+- Save/search haikus
+- Gallery with likes
+- Share on Twitter/X
+
+## What Doesn't
+
+- Collections UI
+- Following/followers UI
+- Gallery pagination
+- Profile pictures
+- Form validation feedback
+
+## To Add Features
+
+Start by understanding:
+1. Frontend state management (simple object in index.html)
+2. How Cloud Functions are called (firebase.functions().httpsCallable)
+3. Firestore data model (look at firestore.rules)
+4. Security rules (in firestore.rules)
+
+## Common Tasks
+
+**Add a UI feature**: Edit index.html HTML + add event listener
+**Add backend logic**: Edit functions/index.js
+**Change database**: Update firestore.rules + firestore-indexes.json
+**Deploy**: `firebase deploy`
 
 3. **Haiku Management**
    - Save haikus to personal collection

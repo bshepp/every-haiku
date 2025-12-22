@@ -1,103 +1,43 @@
-# Future Improvements - Every Haiku
+# Ideas for Future Development
 
-This document outlines planned improvements ordered by implementation priority, with backend/fundamental changes first to avoid rework.
+Not all of these are planned - just potential ideas if you want to expand the app.
 
-## Priority 1: Core Data Model Changes (Backend Fundamentals)
+## Easy (1-2 days each)
 
-### 1.1 Enhanced User Profiles System ✅ (Completed)
-**Why First**: Other features (voting, collections, social) depend on robust user data
-- **Data Model Changes**: ✅ Implemented
-  ```javascript
-  users/{userId}: {
-    displayName: string,
-    username: string (unique),
-    bio: string,
-    avatarUrl: string,
-    website: string,
-    socialLinks: {
-      twitter: string,
-      instagram: string
-    },
-    stats: {
-      totalHaikus: number,
-      totalLikes: number,
-      totalFollowers: number,
-      totalFollowing: number
-    },
-    preferences: {
-      defaultPublic: boolean,
-      emailNotifications: boolean
-    },
-    createdAt: timestamp,
-    updatedAt: timestamp
-  }
-  ```
-- **New Endpoints**: updateProfile ✅, getProfile (partial), uploadAvatar (pending)
-- **Username uniqueness enforcement** ✅
+- **Gallery pagination** - Load haikus in batches instead of all at once
+- **Better error messages** - Toast notifications instead of alerts
+- **Input validation feedback** - Show errors as users type
+- **Search improvements** - Filter by author, date range
+- **Dark mode** - Toggle for dark theme
+- **Mobile navbar** - Hamburger menu for small screens
 
-### 1.2 Voting/Liking System ✅ (Completed)
-**Why Early**: Affects haiku data model and requires user association
-- **Data Model Changes**: ✅ Implemented
-  ```javascript
-  haikus/{haikuId}: {
-    ...existing,
-    likes: number,
-    likedBy: array<userId> // For quick duplicate checks
-  }
-  
-  likes/{userId}_{haikuId}: {
-    userId: string,
-    haikuId: string,
-    createdAt: timestamp
-  }
-  ```
-- **Real-time like counts** ✅
-- **Prevent duplicate likes** ✅
-- **toggleLike Cloud Function** ✅
+## Medium (3-5 days each)
 
-### 1.3 Collections & Categories System
-**Why Early**: Fundamental organization structure
-- **Data Model**:
-  ```javascript
-  collections/{collectionId}: {
-    name: string,
-    description: string,
-    userId: string,
-    isPublic: boolean,
-    coverImage: string,
-    haikuCount: number,
-    followerCount: number,
-    createdAt: timestamp
-  }
-  
-  collectionHaikus/{collectionId}/haikus/{haikuId}: {
-    addedAt: timestamp,
-    order: number
-  }
-  ```
-- **Predefined categories**: Nature, Seasons, Emotions, Urban, Abstract
-- **User-created collections**
+- **Collections UI** - Backend exists, needs frontend
+- **Following/followers UI** - Backend exists, needs frontend
+- **User avatars** - Upload and display profile pictures
+- **Comments** - Let users comment on haikus
+- **Bookmarks** - Save without liking
+- **Trending haikus** - Sort by likes/date
 
-### 1.4 Following/Followers System
-**Why Early**: Social features depend on this
-- **Data Model**:
-  ```javascript
-  following/{userId}/users/{followedId}: {
-    followedAt: timestamp
-  }
-  
-  followers/{userId}/users/{followerId}: {
-    followedAt: timestamp
-  }
-  ```
-- **Activity feed foundation**
+## Hard (1-2 weeks each)
 
-## Priority 2: Feature Enhancements (Require Above Foundations)
+- **Activity feed** - See haikus from people you follow
+- **Daily challenges** - AI generates daily themes
+- **Haiku export** - Download as PDF/image
+- **Mobile app** - React Native or Flutter
+- **PWA** - Offline support, install app
+- **Email notifications** - When someone likes your haiku
+- **Search improvements** - Full-text search, autocomplete
+- **Recommendations** - ML-based haiku suggestions
 
-### 2.1 Daily Haiku Challenges
-- **Scheduled theme generation**
-- **Challenge participation tracking**
-- **Leaderboards**
+## Probably Not Worth It
+
+- **Comments with nested replies** - Adds complexity for small user base
+- **Advanced analytics** - Track user behavior, A/B testing
+- **Monetization** - Premium features, ads, subscriptions
+- **Multi-language** - Haikus don't translate well
+- **Enterprise features** - Team accounts, SSO, audit logs
 - **Badge/achievement system**
 
 ### 2.2 Activity Feed

@@ -9,25 +9,24 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 
 ## Features
 
-### Core Features
-- 🤖 **AI-Powered Generation**: Generate creative haikus using Anthropic's Claude API
-- 📝 **Template-Based Generation**: Classic haiku generation following 5-7-5 syllable pattern
-- 🔐 **User Authentication**: Secure email/password authentication with Firebase
-- 💾 **Personal Collections**: Save your favorite haikus to your personal collection
-- 🌐 **Public Gallery**: Share haikus publicly and browse community creations
-- 🔍 **Search Functionality**: Search through your saved haikus
-- 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
-- #️⃣ **Auto-Hashtags**: Automatic hashtag generation for social sharing
-- 🐦 **Twitter Integration**: Share haikus directly to Twitter/X
-- 🧹 **Auto-Cleanup**: Automatic deletion of unsaved haikus after 30 days
+### What Works ✅
+- 🤖 **AI Generation**: Haikus using Claude API
+- 📝 **Template Fallback**: Classic 5-7-5 syllable generation if AI fails
+- 🔐 **Authentication**: Email/password with Firebase
+- 💾 **Save Haikus**: Keep your favorites
+- 🌐 **Gallery**: Browse and like other users' haikus
+- 🔍 **Search**: Find your saved haikus
+- #️⃣ **Auto-Hashtags**: Automatic social media hashtags
+- 🐦 **Share on X**: Direct Twitter/X sharing
+- 👤 **User Profiles**: Set username, bio, links
+- ❤️ **Likes**: Like other users' haikus
+- 📱 **Responsive**: Desktop and mobile compatible
 
-### New Social Features (v2.0)
-- 👤 **Enhanced User Profiles**: Customizable profiles with username, bio, website, and social links
-- ❤️ **Voting System**: Like and appreciate haikus from other users
-- 👥 **Following System**: Follow your favorite haiku creators (infrastructure ready)
-- 📚 **Collections**: Organize haikus into themed collections (backend ready)
-- 📊 **User Statistics**: Track your haikus, likes, followers, and following
-- 🔒 **Enhanced Security**: Rate limiting and input validation on all endpoints
+### In Progress ⚠️
+- 👥 **Collections**: Backend done, UI not yet implemented
+- 📊 **Following**: Backend done, UI not yet implemented
+- 📈 **User Stats**: Basic tracking, minimal UI
+- 🖼️ **Avatars**: Not yet implemented
 
 ## Tech Stack
 
@@ -43,42 +42,36 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 
 ```
 every-haiku/
+├── docs/                       # 📚 Documentation
+│   ├── README.md              # Doc index (START HERE)
+│   ├── QUICK_REFERENCE.md     # Commands & shortcuts
+│   ├── CLAUDE.md              # Dev notes
+│   ├── setup-instructions.md  # Setup & deploy
+│   ├── TESTING.md             # Testing info
+│   ├── AI_AGENT_GUIDELINES.md # Dev guidelines
+│   └── archived/              # Historical docs
 ├── public/
-│   └── index.html              # Main application (SPA)
+│   └── index.html             # Main application (SPA)
 ├── functions/
-│   ├── index.js               # Cloud Functions (v2 API)
+│   ├── index.js               # Cloud Functions
 │   ├── package.json           # Function dependencies
-│   ├── jest.config.js         # Jest test configuration
-│   ├── .eslintrc.js           # ESLint configuration
-│   └── __tests__/             # Unit and integration tests
-├── cypress/
-│   ├── e2e/                   # End-to-end tests
-│   ├── support/               # Test utilities
-│   └── plugins/               # Cypress plugins
-├── .github/
-│   └── workflows/
-│       └── test.yml           # CI/CD pipeline
-├── firebase.json              # Firebase configuration
-├── firestore.rules            # Security rules
-├── firestore-indexes.json     # Database indexes
-├── cypress.config.js          # Cypress configuration
-├── package.json               # Root package configuration
-├── test-all.sh               # Test runner script
-├── .gitignore                # Git ignore file
-├── LICENSE                   # MIT License
-└── Documentation/
-    ├── README.md             # This file
-    ├── CHANGELOG.md          # Version history
-    ├── TESTING.md            # Testing guide
-    ├── PROJECT_STATUS.md     # Current status
-    ├── PROJECT_REVIEW.md     # Comprehensive review
-    ├── FUTURE_IMPROVEMENTS.md # Roadmap
-    ├── MIGRATION_GUIDE.md    # v1 to v2 guide
-    ├── CI_CD_SETUP.md        # CI/CD guide
-    ├── setup-instructions.md # Setup guide
-    ├── AI_AGENT_GUIDELINES.md # AI dev guidelines
-    └── CLAUDE.md             # Claude-specific docs
+│   └── __tests__/             # Tests
+├── cypress/                    # E2E tests
+├── .github/workflows/test.yml # CI/CD pipeline
+├── firebase.json              # Firebase config
+├── firestore.rules            # Database security
+├── package.json               # Root config
+└── README.md                  # This file
 ```
+
+## Documentation
+
+See [docs/README.md](docs/README.md) for all documentation including:
+- Quick reference and commands
+- Setup and deployment
+- Testing guide
+- Developer notes
+- Historical/archived docs
 
 ## Prerequisites
 
@@ -93,7 +86,7 @@ every-haiku/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/every-haiku.git
+   git clone https://github.com/bshepp/every-haiku.git
    cd every-haiku
    ```
 

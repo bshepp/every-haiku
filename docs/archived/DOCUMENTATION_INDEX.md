@@ -79,7 +79,7 @@ Essential reading:
 - [Cypress Documentation](https://docs.cypress.io)
 
 ### Project Resources
-- [GitHub Repository](https://github.com/bshepp/Haiku)
+- [GitHub Repository](https://github.com/bshepp/every-haiku)
 - [Firebase Console](https://console.firebase.google.com)
 - [Anthropic Console](https://console.anthropic.com)
 
