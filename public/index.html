@@ -667,7 +667,7 @@
                 // Firestore 'in' queries support up to 30 values
                 for (let i = 0; i < userIds.length; i += 30) {
                     const batch = userIds.slice(i, i + 30);
-                    const usersSnap = await db.collection('users').where('__name__', 'in', batch).get();
+                    const usersSnap = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
                     usersSnap.forEach(uDoc => { userMap[uDoc.id] = uDoc.data(); });
                 }
 
