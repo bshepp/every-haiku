@@ -271,6 +271,13 @@
         let currentHaiku = null;
         let currentView = 'home';
 
+        // HTML escaping utility to prevent XSS
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // Syllable counting data
         const syllableData = {
             1: ['sun', 'moon', 'rain', 'snow', 'wind', 'cloud', 'tree', 'leaf', 'bird', 'sky', 'pond', 'frog', 'stone', 'path', 'night', 'day', 'spring', 'fall', 'peace', 'calm', 'light', 'dark', 'soft', 'still', 'cool', 'warm', 'sweet', 'fresh', 'old', 'new'],
@@ -630,7 +637,7 @@
                     .get();
                 
                 for (const doc of snapshot.docs) {
-                    const haikuDoc = await db.collection('haikus').doc(doc.data().haikuRef).get();
+                    const haikuDoc = await db.collection('haikus').doc(doc.id).get();
                     if (haikuDoc.exists) {
                         const haiku = haikuDoc.data();
                         const haikuEl = await createHaikuElement(haiku, haikuDoc.id);
@@ -654,9 +661,19 @@
                     .limit(20)
                     .get();
                 
+                // Batch-fetch unique author profiles to avoid N+1 queries
+                const userIds = [...new Set(snapshot.docs.map(d => d.data().userId).filter(Boolean))];
+                const userMap = {};
+                // Firestore 'in' queries support up to 30 values
+                for (let i = 0; i < userIds.length; i += 30) {
+                    const batch = userIds.slice(i, i + 30);
+                    const usersSnap = await db.collection('users').where('__name__', 'in', batch).get();
+                    usersSnap.forEach(uDoc => { userMap[uDoc.id] = uDoc.data(); });
+                }
+
                 for (const doc of snapshot.docs) {
                     const haiku = doc.data();
-                    const haikuEl = await createHaikuElement(haiku, doc.id);
+                    const haikuEl = await createHaikuElement(haiku, doc.id, userMap);
                     galleryList.appendChild(haikuEl);
                 }
             } catch (error) {
@@ -665,24 +682,31 @@
         }
 
         // Create haiku element with enhanced features
-        async function createHaikuElement(haiku, id) {
+        // userMap is an optional pre-fetched map of userId -> userData to avoid extra queries
+        async function createHaikuElement(haiku, id, userMap) {
             const div = document.createElement('div');
             div.className = 'bg-white p-6 rounded-lg shadow-sm fade-in';
             div.id = `haiku-${id}`;
             
-            // Get author info if available
+            // Get author info — use pre-fetched map if available, otherwise fetch individually
             let authorName = 'Anonymous';
             let authorUsername = '';
             if (haiku.userId) {
-                try {
-                    const userDoc = await db.collection('users').doc(haiku.userId).get();
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        authorName = userData.displayName || 'Anonymous';
-                        authorUsername = userData.username ? `@${userData.username}` : '';
+                if (userMap && userMap[haiku.userId]) {
+                    const userData = userMap[haiku.userId];
+                    authorName = userData.displayName || 'Anonymous';
+                    authorUsername = userData.username ? `@${userData.username}` : '';
+                } else {
+                    try {
+                        const userDoc = await db.collection('users').doc(haiku.userId).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            authorName = userData.displayName || 'Anonymous';
+                            authorUsername = userData.username ? `@${userData.username}` : '';
+                        }
+                    } catch (error) {
+                        console.error('Error fetching author:', error);
                     }
-                } catch (error) {
-                    console.error('Error fetching author:', error);
                 }
             }
             
@@ -694,10 +718,10 @@
             
             div.innerHTML = `
                 <div class="mb-3">
-                    <p class="text-sm font-medium text-gray-700">${authorName} <span class="text-gray-400">${authorUsername}</span></p>
+                    <p class="text-sm font-medium text-gray-700">${escapeHtml(authorName)} <span class="text-gray-400">${escapeHtml(authorUsername)}</span></p>
                 </div>
-                <p class="haiku-text mb-3">${haiku.content.replace(/\n/g, '<br>')}</p>
-                <p class="text-sm text-gray-500 mb-4">${(haiku.hashtags || []).join(' ')}</p>
+                <p class="haiku-text mb-3">${escapeHtml(haiku.content).replace(/\n/g, '<br>')}</p>
+                <p class="text-sm text-gray-500 mb-4">${(haiku.hashtags || []).map(h => escapeHtml(h)).join(' ')}</p>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <button class="like-btn flex items-center gap-1 text-gray-500 hover:text-red-500 transition" data-haiku-id="${id}">
@@ -716,7 +740,7 @@
                     </div>
                     <div class="text-xs text-gray-400">
                         <span>${haiku.isAI ? 'AI Generated' : 'Classic Style'}</span>
-                        ${haiku.theme ? ` • ${haiku.theme}` : ''}
+                        ${haiku.theme ? ` • ${escapeHtml(haiku.theme)}` : ''}
                     </div>
                 </div>
             `;

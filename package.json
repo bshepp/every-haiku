@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "cypress": "^13.7.0",
-    "@firebase/testing": "^0.20.11",
     "@firebase/rules-unit-testing": "^3.0.1"
   },
   "repository": {

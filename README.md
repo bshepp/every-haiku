@@ -61,6 +61,8 @@ every-haiku/
 ├── firebase.json              # Firebase config
 ├── firestore.rules            # Database security
 ├── package.json               # Root config
+├── test-all.sh                # Test runner (Linux/macOS)
+├── test-all.ps1               # Test runner (Windows)
 └── README.md                  # This file
 ```
 
@@ -123,12 +125,12 @@ See [docs/README.md](docs/README.md) for all documentation including:
    firebase functions:secrets:set CLAUDE_API_KEY
    ```
 
-9. **Deploy Firestore indexes**
+8. **Deploy Firestore indexes**
    ```bash
    firebase deploy --only firestore:indexes
    ```
 
-8. **Deploy**
+9. **Deploy**
    ```bash
    firebase deploy
    ```
@@ -160,8 +162,11 @@ The project includes a comprehensive testing framework with unit, integration, a
 
 ### Quick Test Commands
 ```bash
-# Run all tests
+# Run all tests (Linux/macOS)
 ./test-all.sh
+
+# Run all tests (Windows PowerShell)
+.\test-all.ps1
 
 # Run unit tests
 cd functions && npm test
@@ -193,16 +198,16 @@ const firebaseConfig = {
 ```
 
 ### Environment Variables
-Set the Claude API key for AI generation:
+Set the Claude API key for AI generation (v2 functions use secrets, not `functions.config()`):
 ```bash
-firebase functions:config:set claude.api_key="YOUR_KEY"
+firebase functions:secrets:set CLAUDE_API_KEY
 ```
 
 ## API Endpoints (Cloud Functions)
 
 ### Content Generation
-- `generateAIHaiku`: Generate AI-powered haiku using Claude (with rate limiting)
-- `generateHashtags`: Generate relevant hashtags for haikus
+- `generateAIHaiku`: Generate AI-powered haiku using Claude (authenticated, rate-limited)
+- `generateHashtags`: Generate relevant hashtags for haikus (authenticated)
 
 ### User Management
 - `updateProfile`: Update user profile information
@@ -219,21 +224,32 @@ firebase functions:config:set claude.api_key="YOUR_KEY"
 
 ## Security
 
-- Authentication required for saving haikus and social features
+- Authentication required for all Cloud Functions (generation, hashtags, social features)
 - Users can only modify their own content
 - Public haikus and profiles visible to all users
 - API keys stored securely using Firebase secrets
 - Comprehensive Firestore security rules with granular access control
+- `likes` and `likedBy` fields are protected from direct client manipulation (server-only via Cloud Functions)
 - Rate limiting on all API endpoints (10 requests/minute)
 - Input validation and sanitization
-- XSS protection in frontend
+- XSS protection in frontend via `escapeHtml()` utility on all user-generated content
 - Username uniqueness enforcement
 
 ## Project Status
 
 This project is currently in **Beta**. Core features are complete and stable. See `FUTURE_IMPROVEMENTS.md` for the roadmap of upcoming features.
 
-### Recent Updates (v2.0)
+### Recent Updates (v2.1)
+- Fixed `FieldValue` import in Cloud Functions (critical bug)
+- Fixed saved haikus loading bug (`doc.id` reference)
+- Added XSS protection via `escapeHtml()` for all user-generated content in gallery
+- Added authentication requirement to `generateHashtags` function
+- Locked `likes`/`likedBy` fields in Firestore rules to prevent client-side manipulation
+- Optimized gallery loading with batch user profile fetching (eliminated N+1 queries)
+- Added Windows-compatible test runner (`test-all.ps1`)
+- Removed deprecated `@firebase/testing` dependency
+
+### Previous Updates (v2.0)
 - Enhanced user profiles with social features
 - Voting/liking system
 - Collections infrastructure

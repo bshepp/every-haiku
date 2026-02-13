@@ -34,7 +34,9 @@ every-haiku/
 │   │   └── e2e.js
 │   └── plugins/
 │       └── index.js
-└── cypress.config.js
+├── cypress.config.js
+├── test-all.sh              # Run all tests (Linux/macOS)
+└── test-all.ps1             # Run all tests (Windows)
 ```
 
 ## Running Tests
@@ -61,6 +63,18 @@ CLAUDE_API_KEY=your-api-key-here
 ```bash
 npm install -g firebase-tools
 firebase init emulators
+```
+
+### Running All Tests
+
+The project includes scripts that start emulators, run all tests, and clean up:
+
+```bash
+# Linux/macOS
+./test-all.sh
+
+# Windows (PowerShell)
+.\test-all.ps1
 ```
 
 ### Unit Tests
@@ -416,6 +430,7 @@ npm test -- --verbose
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
 - [Cypress Documentation](https://docs.cypress.io)
 - [Firebase Testing](https://firebase.google.com/docs/rules/unit-tests)
+- [Firebase Rules Unit Testing](https://www.npmjs.com/package/@firebase/rules-unit-testing) (v3+)
 - [Firebase Emulator Suite](https://firebase.google.com/docs/emulator-suite)
 
 ## Contributing

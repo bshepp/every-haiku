@@ -36,7 +36,8 @@ npm install
 firebase emulators:start
 
 # Test
-./test-all.sh
+./test-all.sh              # Linux/macOS
+.\test-all.ps1             # Windows (PowerShell)
 
 # Deploy
 firebase deploy

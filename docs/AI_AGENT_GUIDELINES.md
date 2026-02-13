@@ -2,7 +2,7 @@
 
 ## Stack
 
-- Frontend: 885 lines of vanilla JS in `public/index.html`
+- Frontend: ~900 lines of vanilla JS in `public/index.html`
 - Backend: Firebase Cloud Functions in `functions/index.js`
 - Database: Cloud Firestore
 - Auth: Firebase Auth (email/password)
@@ -191,16 +191,19 @@ Start by understanding:
 4. **Async Operations**: Proper loading states and error messages
 
 ### Firebase Integration
-1. **Compat Library**: Uses Firebase v10 compat for broader compatibility
+1. **Compat Library**: Uses Firebase v11 compat for broader compatibility
 2. **Real-time Updates**: `onAuthStateChanged` for auth state
-3. **Batch Operations**: Used for bulk deletions
+3. **Batch Operations**: Used for bulk deletions and batch profile fetching (gallery N+1 fix)
 4. **Server Timestamps**: `FieldValue.serverTimestamp()` for consistency
+5. **Modular Admin Imports**: `FieldValue` must be imported from `firebase-admin/firestore`
 
 ### Security Patterns
 1. **Authentication Required**: Most write operations require auth
 2. **Owner-only Operations**: Users can only modify their own content
 3. **Public/Private Separation**: Clear distinction in data access
-4. **API Key Protection**: Claude API key stored in Firebase config
+4. **API Key Protection**: Claude API key stored in Firebase secrets (`functions:secrets:set`)
+5. **XSS Prevention**: `escapeHtml()` utility applied to all user-generated content in innerHTML
+6. **Likes Protection**: `likes`/`likedBy` fields locked in Firestore rules — only modifiable via `toggleLike` Cloud Function
 
 ## Development Guidelines
 
@@ -214,6 +217,7 @@ Start by understanding:
 6. **Add Rate Limiting**: Implement rate limiting for new Cloud Functions
 7. **Validate Input**: Always validate and sanitize user input on backend
 8. **Use Transactions**: For operations affecting multiple documents
+9. **Escape Output**: Use `escapeHtml()` for any user-generated content rendered via innerHTML
 
 ### When Modifying Cloud Functions
 
@@ -223,7 +227,7 @@ Start by understanding:
 4. **Error Handling**: Throw Error objects with clear messages
 5. **Logging**: Use `console.log` for debugging (visible in Firebase console)
 6. **Rate Limiting**: Implement per-user rate limiting (see existing pattern)
-7. **Use Modular Imports**: Import from specific Firebase Admin subpackages
+7. **Use Modular Imports**: Import from specific Firebase Admin subpackages (e.g., `FieldValue` from `firebase-admin/firestore`)
 
 ### UI/UX Principles
 
@@ -295,12 +299,18 @@ When making changes, verify:
 
 ## Current Development Status
 
-### Completed (v2.0)
+### Completed (v2.1)
 - Enhanced user profiles with username system
 - Voting/liking functionality
 - Backend infrastructure for collections and following
 - Rate limiting and security improvements
 - Dependency updates to latest stable versions
+- XSS protection via `escapeHtml()` utility
+- Likes/likedBy field protection in Firestore rules
+- Auth requirement added to `generateHashtags`
+- Batch profile fetching in gallery (N+1 query fix)
+- Windows test script (`test-all.ps1`)
+- Removed deprecated `@firebase/testing` dependency
 
 ### In Progress
 See `FUTURE_IMPROVEMENTS.md` for detailed roadmap:

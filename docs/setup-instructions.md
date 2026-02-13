@@ -1,6 +1,6 @@
 # Every Haiku - Setup Instructions
 
-**Version**: 2.0 (Updated for Firebase SDK v11, Node.js 20, and social features)
+**Version**: 2.1 (Updated for Firebase SDK v11, Node.js 20, social features, and security hardening)
 
 ## Project Structure
 ```
@@ -17,7 +17,8 @@ every-haiku/
 ├── firestore.rules            # Security rules
 ├── firestore-indexes.json     # Database indexes
 ├── package.json               # Root dependencies
-└── test-all.sh               # Test runner
+├── test-all.sh               # Test runner (Linux/macOS)
+└── test-all.ps1              # Test runner (Windows)
 ```
 
 ## Prerequisites
@@ -143,6 +144,14 @@ firebase emulators:start
 - ✅ Rate limiting (10 requests/minute)
 - ✅ Input validation and XSS protection
 
+### Security & Quality (v2.1)
+- ✅ `escapeHtml()` utility for all user-generated content in innerHTML
+- ✅ Likes/likedBy fields locked in Firestore rules (server-only modification)
+- ✅ Auth requirement added to `generateHashtags` function
+- ✅ Batch profile fetching in gallery (N+1 query fix)
+- ✅ Windows test script (`test-all.ps1`)
+- ✅ Removed deprecated `@firebase/testing` dependency
+
 ## Future Enhancements for Mobile
 When ready to build mobile apps:
 1. Create a new React Native project
@@ -163,6 +172,8 @@ Currently configured for Claude (Anthropic), but you can easily switch:
 - All API keys in the code are placeholders - replace with your actual values
 - Rate limiting is enforced (10 requests/minute per user)
 - Input validation happens on the backend
+- XSS protection via `escapeHtml()` on all user-generated content
+- Likes/likedBy fields protected in Firestore rules (only `toggleLike` Cloud Function can modify)
 - Usernames are globally unique and can only be set once
 
 ### Dependencies

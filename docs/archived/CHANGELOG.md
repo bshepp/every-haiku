@@ -5,6 +5,29 @@ All notable changes to Every Haiku will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-12
+
+### Added
+- Authentication requirement on `generateHashtags` Cloud Function
+- `escapeHtml()` utility function for XSS protection on all user-generated content
+- `test-all.ps1` Windows PowerShell test runner (equivalent of `test-all.sh`)
+- Batch user profile fetching in gallery to eliminate N+1 queries
+- Unit tests for `generateHashtags` function
+- Integration tests for likes/likedBy immutability rule
+- `createHaikuElement` now accepts optional `userMap` parameter for pre-fetched profiles
+
+### Fixed
+- Critical bug: `FieldValue` not imported from `firebase-admin/firestore` (broke 5 of 8 Cloud Functions)
+- `loadSavedHaikus` using `doc.data().haikuRef` instead of `doc.id` (saved haikus failed to load)
+- Broken `@firebase/testing` import in integration test file
+
+### Security
+- Firestore rules now prevent client-side manipulation of `likes` and `likedBy` fields on haikus
+- Only `toggleLike` Cloud Function (running with admin privileges) can modify like data
+
+### Removed
+- Deprecated `@firebase/testing` package from devDependencies (replaced by `@firebase/rules-unit-testing`)
+
 ## [2.0.0] - 2025-07-18
 
 ### Added

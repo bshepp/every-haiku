@@ -12,7 +12,8 @@ npm install
 firebase emulators:start
 
 # Run all tests
-./test-all.sh
+./test-all.sh              # Linux/macOS
+.\test-all.ps1             # Windows (PowerShell)
 
 # Run specific tests
 cd functions && npm test                    # Unit tests
@@ -47,7 +48,8 @@ firebase deploy --only firestore:indexes
 ### Testing
 - `functions/__tests__/` - Unit tests
 - `cypress/e2e/` - End-to-end tests
-- `test-all.sh` - Run all tests
+- `test-all.sh` - Run all tests (Linux/macOS)
+- `test-all.ps1` - Run all tests (Windows)
 
 ### Documentation
 - `README.md` - Project overview
@@ -84,7 +86,7 @@ const firebaseConfig = {
 | Function | Purpose | Rate Limit |
 |----------|---------|------------|
 | `generateAIHaiku` | Generate AI haiku with Claude | 10/min |
-| `generateHashtags` | Generate relevant hashtags | 10/min |
+| `generateHashtags` | Generate relevant hashtags (auth required) | 10/min |
 | `cleanupOldHaikus` | Delete unsaved haikus >30 days | Scheduled |
 | `updateProfile` | Update user profile | 10/min |
 | `toggleLike` | Like/unlike haiku | 10/min |
@@ -98,8 +100,9 @@ const firebaseConfig = {
 - `users/{userId}` - User profiles
 - `haikus/{haikuId}` - All haikus
 - `usernames/{username}` - Username registry
-- `likes/{userId}_{haikuId}` - Like relationships
-- `follows/{followerId}_{followingId}` - Follow relationships
+- `userLikes/{userId}/likes/{haikuId}` - Like relationships
+- `following/{userId}/users/{followedId}` - Follow relationships
+- `followers/{userId}/users/{followerId}` - Follower relationships
 - `collections/{collectionId}` - User collections
 - `collectionHaikus/{collectionId}/haikus/{haikuId}` - Collection contents
 
@@ -108,11 +111,12 @@ All required indexes are defined in `firestore-indexes.json`
 
 ## 🔒 Security Features
 
-1. **Authentication Required**: For saving, liking, following
+1. **Authentication Required**: For saving, liking, following, hashtag generation
 2. **Rate Limiting**: 10 requests/minute per user
 3. **Input Validation**: All inputs sanitized
-4. **XSS Protection**: Safe rendering
+4. **XSS Protection**: `escapeHtml()` utility applied to all user-generated content in innerHTML
 5. **Username Uniqueness**: Enforced globally
+6. **Likes Protection**: `likes`/`likedBy` fields locked in Firestore rules — only modifiable via `toggleLike` Cloud Function
 
 ## 🐛 Troubleshooting
 
@@ -170,6 +174,6 @@ firebase deploy --only firestore:indexes
 
 ## 📞 Support
 
-- **Documentation**: See full docs in project root
+- **Documentation**: See full docs in `docs/` directory
 - **Issues**: https://github.com/bshepp/every-haiku/issues
-- **Updates**: Check `CHANGELOG.md` for version history
+- **Updates**: Check `docs/archived/CHANGELOG.md` for version history

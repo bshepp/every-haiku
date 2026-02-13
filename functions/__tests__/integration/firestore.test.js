@@ -1,4 +1,3 @@
-const firebase = require("@firebase/testing");
 const {initializeTestEnvironment, assertSucceeds, assertFails} = require("@firebase/rules-unit-testing");
 
 // Load Firestore rules
@@ -121,6 +120,93 @@ describe("Firestore Security Rules", () => {
           isPublic: false,
           isSaved: false,
           userId: "user123",
+        })
+      );
+    });
+
+    it("should allow owner to update own haiku without changing likes", async () => {
+      await adminDb.collection("haikus").doc("haiku1").set({
+        content: "Test haiku",
+        theme: "nature",
+        isAI: false,
+        createdAt: new Date(),
+        isPublic: false,
+        isSaved: false,
+        userId: "user123",
+        likes: 5,
+        likedBy: ["other1", "other2"],
+      });
+
+      await assertSucceeds(
+        authedDb.collection("haikus").doc("haiku1").update({
+          isPublic: true,
+          isSaved: true,
+          likes: 5,
+          likedBy: ["other1", "other2"],
+        })
+      );
+    });
+
+    it("should prevent owner from changing likes count directly", async () => {
+      await adminDb.collection("haikus").doc("haiku1").set({
+        content: "Test haiku",
+        theme: "nature",
+        isAI: false,
+        createdAt: new Date(),
+        isPublic: false,
+        isSaved: false,
+        userId: "user123",
+        likes: 5,
+        likedBy: ["other1"],
+      });
+
+      await assertFails(
+        authedDb.collection("haikus").doc("haiku1").update({
+          likes: 100,
+          likedBy: ["other1"],
+        })
+      );
+    });
+
+    it("should prevent owner from changing likedBy array directly", async () => {
+      await adminDb.collection("haikus").doc("haiku1").set({
+        content: "Test haiku",
+        theme: "nature",
+        isAI: false,
+        createdAt: new Date(),
+        isPublic: false,
+        isSaved: false,
+        userId: "user123",
+        likes: 1,
+        likedBy: ["other1"],
+      });
+
+      await assertFails(
+        authedDb.collection("haikus").doc("haiku1").update({
+          likes: 1,
+          likedBy: ["other1", "user123"],
+        })
+      );
+    });
+
+    it("should prevent non-owners from updating haikus", async () => {
+      await adminDb.collection("haikus").doc("haiku1").set({
+        content: "Test haiku",
+        theme: "nature",
+        isAI: false,
+        createdAt: new Date(),
+        isPublic: true,
+        isSaved: true,
+        userId: "other-user",
+        likes: 0,
+        likedBy: [],
+      });
+
+      await assertFails(
+        authedDb.collection("haikus").doc("haiku1").update({
+          isPublic: false,
+          likes: 0,
+          likedBy: [],
         })
       );
     });

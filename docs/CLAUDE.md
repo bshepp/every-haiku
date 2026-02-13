@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Every Haiku is a Firebase-based single-page application for generating, saving, and sharing haikus. It features both AI-powered generation (using Claude API) and template-based generation following traditional 5-7-5 syllable patterns.
 
-**Current Version**: 2.0 (Beta) - Core features working, v2.0 social features partially done (backend mostly complete, UI incomplete)
+**Current Version**: 2.1 (Beta) - Core features working, v2.0 social features partially done (backend mostly complete, UI incomplete), v2.1 critical bug fixes and security hardening
 
 ## Architecture Updates (v2.0)
 
@@ -21,7 +21,7 @@ Every Haiku is a Firebase-based single-page application for generating, saving, 
 - All security vulnerabilities resolved
 
 ### Breaking Changes Addressed
-- Migrated to modular Firebase Admin imports
+- Migrated to modular Firebase Admin imports (including `FieldValue` from `firebase-admin/firestore`)
 - Updated to v2 Cloud Functions API
 - Switched from `functions.config()` to environment variables
 - See `MIGRATION_GUIDE.md` for details
@@ -98,7 +98,7 @@ firebase functions:secrets:access CLAUDE_API_KEY
 - **Cloud Functions**: Enhanced functions in `functions/index.js`:
   - **Content Generation**:
     - `generateAIHaiku`: Calls Claude API with rate limiting
-    - `generateHashtags`: Creates relevant hashtags
+    - `generateHashtags`: Creates relevant hashtags (requires authentication)
   - **User Management**:
     - `updateProfile`: Handle profile updates with username uniqueness
     - `getUserStats`: Returns comprehensive statistics
@@ -121,7 +121,7 @@ firebase functions:secrets:access CLAUDE_API_KEY
   - `followers/{userId}/users`: User's followers
   - `collections`: User-created collections
   - `collectionHaikus/{collectionId}/haikus`: Haikus in collections
-- **Security**: Comprehensive rules with granular access control, rate limiting, and input validation
+- **Security**: Comprehensive rules with granular access control, rate limiting, input validation, and `likes`/`likedBy` protection from direct client writes
 
 ### Key Implementation Patterns
 1. **Authentication flow**: Uses `onAuthStateChanged` listener for real-time auth state
@@ -132,16 +132,18 @@ firebase functions:secrets:access CLAUDE_API_KEY
 6. **Transactions**: Atomic operations for likes, follows, and username claims
 7. **Rate limiting**: Server-side rate limiting (10 req/min) on all functions
 8. **Real-time updates**: Live like counts and user stats
+9. **XSS protection**: `escapeHtml()` utility sanitizes all user-generated content before HTML injection
+10. **Batch profile fetching**: Gallery uses `where('__name__', 'in', ...)` to batch-load author profiles
 
 ## Important Notes
 
 - **API Keys**: Claude API key set via `firebase functions:secrets:set CLAUDE_API_KEY`, never committed
-- **Single file frontend**: All code in `public/index.html` (885 lines - consider refactoring)
+- **Single file frontend**: All code in `public/index.html` (~900 lines - consider refactoring)
 - **Deployment**: `firebase deploy` (requires `.firebaserc` setup first)
 - **Emulator ports**: Auth (9099), Functions (5001), Firestore (8080), Hosting (5000)
 - **Node**: Functions require Node.js 20
-- **Rate limiting**: 10 req/min per user (server-side, in-memory)
-- **Tests**: Jest + Cypress configured, status unknown
+- **Rate limiting**: 10 req/min per user (server-side, in-memory — does not persist across Cloud Functions instances)
+- **Tests**: Jest + Cypress configured; Windows users should use `test-all.ps1`
 
 ## What's Actually Working
 
@@ -159,6 +161,7 @@ firebase functions:secrets:access CLAUDE_API_KEY
 - Collections UI (backend exists)
 - Following/followers UI (backend exists)
 - Activity feed (not started)
-- Gallery pagination (no pagination)
+- Gallery pagination (loads up to 20, no "load more")
 - Profile pictures (not implemented)
 - Form validation (minimal UX feedback)
+- Rate limiting is in-memory only (resets per Cloud Functions instance)

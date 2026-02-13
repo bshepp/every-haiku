@@ -1,7 +1,7 @@
 const {onCall} = require("firebase-functions/v2/https");
 const {onSchedule: onScheduleTask} = require("firebase-functions/v2/scheduler");
 const {initializeApp} = require("firebase-admin/app");
-const {getFirestore} = require("firebase-admin/firestore");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const fetch = require("node-fetch");
 
 // Initialize Firebase Admin
@@ -132,6 +132,11 @@ exports.cleanupOldHaikus = onScheduleTask("every 24 hours", async (event) => {
 
 // Function to generate hashtags
 exports.generateHashtags = onCall(async (request) => {
+  // Require authentication
+  if (!request.auth) {
+    throw new Error("User must be authenticated");
+  }
+
   const {theme, content} = request.data;
 
   if (!content) {

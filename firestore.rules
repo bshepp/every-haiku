@@ -45,8 +45,11 @@ service cloud.firestore {
         request.resource.data.keys().hasAll(['content', 'theme', 'isAI', 'createdAt', 'isPublic', 'isSaved']);
       
       // Users can update their own haikus (for making public or saving)
+      // Prevent direct manipulation of likes/likedBy — those are managed by Cloud Functions
       allow update: if isOwner(resource.data.userId) &&
-        request.resource.data.userId == resource.data.userId;
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.likes == resource.data.likes &&
+        request.resource.data.likedBy == resource.data.likedBy;
       
       // Users can delete their own haikus
       allow delete: if isOwner(resource.data.userId);
