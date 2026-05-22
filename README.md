@@ -178,7 +178,7 @@ npx cypress open
 cd functions && npm run test:coverage
 ```
 
-See `TESTING.md` for detailed testing documentation.
+See [docs/TESTING.md](docs/TESTING.md) for detailed testing documentation.
 
 ## Configuration
 
@@ -237,7 +237,7 @@ firebase functions:secrets:set CLAUDE_API_KEY
 
 ## Project Status
 
-This project is currently in **Beta**. Core features are complete and stable. See `FUTURE_IMPROVEMENTS.md` for the roadmap of upcoming features.
+This project is currently in **Beta**. Core features are complete and stable. See [docs/archived/FUTURE_IMPROVEMENTS.md](docs/archived/FUTURE_IMPROVEMENTS.md) for the roadmap of upcoming features.
 
 ### Recent Updates (v2.1)
 - Fixed `FieldValue` import in Cloud Functions (critical bug)
@@ -265,9 +265,9 @@ This project is currently in **Beta**. Core features are complete and stable. Se
 5. Open a Pull Request
 
 Please read:
-- `AI_AGENT_GUIDELINES.md` for development guidelines
-- `FUTURE_IMPROVEMENTS.md` for planned features
-- `MIGRATION_GUIDE.md` for dependency update information
+- [docs/AI_AGENT_GUIDELINES.md](docs/AI_AGENT_GUIDELINES.md) for development guidelines
+- [docs/archived/FUTURE_IMPROVEMENTS.md](docs/archived/FUTURE_IMPROVEMENTS.md) for planned features
+- [docs/archived/MIGRATION_GUIDE.md](docs/archived/MIGRATION_GUIDE.md) for dependency update information
 
 ## License
 

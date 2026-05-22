@@ -1,6 +1,6 @@
 {
   "name": "every-haiku",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "AI-powered haiku generator with social features",
   "private": true,
   "scripts": {
@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/every-haiku.git"
+    "url": "git+https://github.com/bshepp/every-haiku.git"
   },
   "keywords": [
     "haiku",
@@ -38,9 +38,9 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/every-haiku/issues"
+    "url": "https://github.com/bshepp/every-haiku/issues"
   },
-  "homepage": "https://github.com/yourusername/every-haiku#readme",
+  "homepage": "https://github.com/bshepp/every-haiku#readme",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

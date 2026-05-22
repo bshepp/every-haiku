@@ -81,9 +81,10 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# IDE files
+# IDE / AI assistant files
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
