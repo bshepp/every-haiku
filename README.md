@@ -7,6 +7,8 @@ A minimalist web application for generating, saving, and sharing haikus. Feature
 ![Node](https://img.shields.io/badge/Node.js-20.x-green.svg)
 ![Status](https://img.shields.io/badge/Status-Beta-yellow.svg)
 
+> **Sibling art-project data:** the shared quantum-art data archive (gallery, Braket results, pre-teardown S3 backup) lives at **`F:\_shared-resources\QUANTUM-DATA-ARCHIVE\`**, shared across the art projects (`every-haiku`, `quantum-art-pipeline`, `digital-ai-art-curator`). Not used by every-haiku directly — recorded here for cross-project reference.
+
 ## Features
 
 ### What Works ✅
