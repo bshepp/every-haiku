@@ -24,7 +24,7 @@ If applicable, add screenshots to help explain your problem.
 ## Environment
 - Browser: [e.g., Chrome 120, Firefox 121]
 - Device: [e.g., Desktop, iPhone 15]
-- Logged in: [Yes/No]
+- Address (the number after # in the URL), if relevant:
 
 ## Additional Context
 Add any other context about the problem here.

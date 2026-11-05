@@ -10,9 +10,9 @@ Brief description of changes made.
 ## How Has This Been Tested?
 Describe the tests you ran to verify your changes.
 
-- [ ] Unit tests pass (`cd functions && npm test`)
-- [ ] E2E tests pass (`npx cypress run`)
-- [ ] Manual testing with Firebase emulators
+- [ ] `npm test` passes
+- [ ] Opened `public/index.html` in a browser and checked the change
+- [ ] If the vocabulary or templates changed: noted that addresses are renumbered
 
 ## Checklist
 - [ ] My code follows the project's style guidelines
