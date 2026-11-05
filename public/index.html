@@ -1,909 +1,409 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haiku Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-functions-compat.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&display=swap');
-        body {
-            font-family: 'Noto Serif JP', serif;
-        }
-        .haiku-text {
-            line-height: 1.8;
-            letter-spacing: 0.05em;
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every Haiku</title>
+<meta name="description" content="A haiku slice of the infinite library. Every 5-7-5 haiku the library can hold, each at its own address.">
+<meta property="og:title" content="Every Haiku">
+<meta property="og:description" content="A haiku slice of the infinite library. Every haiku here has an address. Find yours.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f1d1a'/%3E%3Cpath d='M8 9h16M8 16h16M8 23h16' stroke='%23e9e2d6' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;1,300&display=swap">
+<style>
+  :root {
+    --bg: #f5f1ea;
+    --paper: #fffdf8;
+    --ink: #1f1d1a;
+    --muted: #6f685e;
+    --line: #e2dbd0;
+    --accent: #8a4b2f;
+    --accent-ink: #fff;
+    --focus: #c97b4a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161513;
+      --paper: #1f1d1a;
+      --ink: #ece6da;
+      --muted: #9b9386;
+      --line: #35312b;
+      --accent: #d9a06f;
+      --accent-ink: #1a1510;
+      --focus: #e0b088;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161513;
+    --paper: #1f1d1a;
+    --ink: #ece6da;
+    --muted: #9b9386;
+    --line: #35312b;
+    --accent: #d9a06f;
+    --accent-ink: #1a1510;
+    --focus: #e0b088;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Serif", Georgia, "Times New Roman", serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 16px 4rem; }
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 {
+    font-weight: 300;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    letter-spacing: 0.06em;
+    margin: 0 0 0.25rem;
+  }
+  header .tag { color: var(--muted); font-style: italic; margin: 0; }
+  header .count { color: var(--muted); font-size: 0.9rem; margin: 0.75rem 0 0; }
+  header .count b { font-weight: 400; color: var(--ink); }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 2.25rem 1.5rem 1.5rem;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 12px 30px -24px rgba(0,0,0,0.35);
+  }
+  .haiku {
+    font-size: clamp(1.25rem, 3.6vw, 1.7rem);
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+    text-align: center;
+    margin: 0;
+    min-height: 5.5em;
+    white-space: pre-line;
+    transition: opacity 0.18s ease;
+  }
+  .haiku.fading { opacity: 0; }
+  .address {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 1.5rem 0 0;
+    word-break: break-all;
+  }
+  .address b { font-weight: 400; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .hall { text-align: center; margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--muted); }
+  .hall button { font-size: inherit; padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-decoration: underline dotted; font-family: inherit; }
+  .shape { display: none; margin: 0.75rem auto 0; max-width: 32rem; font-size: 0.85rem; color: var(--muted); text-align: center; line-height: 1.7; }
+  .shape.open { display: block; }
+  .shape code { font-family: inherit; color: var(--ink); }
+
+  .controls { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1.6rem; flex-wrap: wrap; }
+  button.btn, .btn {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 1.05rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.quiet { border-color: transparent; color: var(--muted); }
+  .btn.quiet:hover { color: var(--ink); border-color: var(--line); }
+
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: stretch; }
+  input[type="text"], textarea {
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    width: 100%;
+    min-width: 0;
+  }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .row input { flex: 1 1 14rem; }
+  textarea { resize: vertical; min-height: 5.2em; }
+
+  section { margin-top: 2.5rem; }
+  section h2 {
+    font-weight: 300;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+  .hint { color: var(--muted); font-size: 0.9rem; margin: 0.4rem 0 0.8rem; }
+  .result { margin-top: 0.9rem; font-size: 0.95rem; }
+  .result .found {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+  .result pre { font: inherit; white-space: pre-line; margin: 0.4rem 0 0.7rem; line-height: 1.7; }
+  .result .n { font-variant-numeric: tabular-nums; word-break: break-all; }
+  .result .unknown { color: var(--accent); }
+  .status { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--ink); color: var(--bg); padding: 0.45rem 0.9rem; border-radius: 999px; font-size: 0.85rem;
+    transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
+  .status.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  details { border-top: 1px solid var(--line); padding: 0.9rem 0; }
+  details summary { cursor: pointer; color: var(--ink); font-weight: 300; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; color: var(--muted); }
+  details[open] summary::after { content: "−"; }
+  details .body { color: var(--muted); font-size: 0.95rem; padding-top: 0.6rem; }
+  details .body p { margin: 0.5rem 0; }
+  .vocab { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 1rem 1.5rem; }
+  .vocab h3 { font-weight: 400; font-size: 0.85rem; margin: 0 0 0.2rem; color: var(--ink); }
+  .vocab p { margin: 0; font-size: 0.85rem; line-height: 1.7; }
+  kbd { font: inherit; font-size: 0.8em; border: 1px solid var(--line); border-radius: 4px; padding: 0 0.35em; }
+  footer { margin-top: 3rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 480px) {
+    .card { padding: 1.75rem 1rem 1.25rem; }
+    .controls .btn { flex: 1 1 auto; }
+  }
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-xl font-light">Haiku Generator</h1>
-                <div class="flex gap-4">
-                    <button id="homeBtn" class="text-gray-600 hover:text-gray-900">Generate</button>
-                    <button id="savedBtn" class="text-gray-600 hover:text-gray-900">Saved</button>
-                    <button id="galleryBtn" class="text-gray-600 hover:text-gray-900">Gallery</button>
-                    <button id="statsBtn" class="text-gray-600 hover:text-gray-900 hidden">Stats</button>
-                    <button id="profileBtn" class="text-gray-600 hover:text-gray-900 hidden">Profile</button>
-                    <button id="authBtn" class="text-gray-600 hover:text-gray-900">Sign In</button>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Every Haiku</h1>
+    <p class="tag">a haiku slice of the infinite library</p>
+    <p class="count">This library holds <b id="total"></b> haikus. Every one of them has an address.</p>
+  </header>
 
-    <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Home View -->
-        <div id="homeView" class="space-y-8">
-            <div class="text-center space-y-4">
-                <input 
-                    id="themeInput" 
-                    type="text" 
-                    placeholder="Enter a theme (optional)"
-                    class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-                
-                <div class="flex justify-center items-center gap-4">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" id="aiToggle" class="rounded">
-                        <span class="text-sm text-gray-600">Use AI</span>
-                    </label>
-                </div>
-
-                <button 
-                    id="generateBtn"
-                    class="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
-                >
-                    Generate Haiku
-                </button>
-            </div>
-
-            <div id="haikuDisplay" class="hidden fade-in">
-                <div class="bg-white p-8 rounded-lg shadow-sm text-center">
-                    <p id="haikuText" class="haiku-text text-lg mb-4"></p>
-                    <p id="haikuHashtags" class="text-sm text-gray-500 mb-6"></p>
-                    
-                    <div class="flex justify-center gap-4">
-                        <button id="copyBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                            Copy
-                        </button>
-                        <button id="saveBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                            Save
-                        </button>
-                        <button id="shareTwitterBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                            Share on X
-                        </button>
-                        <button id="makePublicBtn" class="px-4 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                            Make Public
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Saved View -->
-        <div id="savedView" class="hidden space-y-4">
-            <h2 class="text-2xl font-light text-center mb-6">Saved Haikus</h2>
-            <input 
-                id="searchInput" 
-                type="text" 
-                placeholder="Search your haikus..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mb-6"
-            />
-            <div id="savedHaikusList" class="space-y-4"></div>
-        </div>
-
-        <!-- Gallery View -->
-        <div id="galleryView" class="hidden space-y-4">
-            <h2 class="text-2xl font-light text-center mb-6">Public Gallery</h2>
-            <div id="galleryList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-
-        <!-- Stats View -->
-        <div id="statsView" class="hidden space-y-4">
-            <h2 class="text-2xl font-light text-center mb-6">Your Haiku Statistics</h2>
-            <div id="statsDisplay" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <h3 class="text-3xl font-light mb-2" id="totalCount">-</h3>
-                    <p class="text-gray-600">Total Haikus</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <h3 class="text-3xl font-light mb-2" id="savedCount">-</h3>
-                    <p class="text-gray-600">Saved Haikus</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <h3 class="text-3xl font-light mb-2" id="publicCount">-</h3>
-                    <p class="text-gray-600">Public Haikus</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile View -->
-        <div id="profileView" class="hidden space-y-6">
-            <h2 class="text-2xl font-light text-center mb-6">My Profile</h2>
-            
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <form id="profileForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                            <input 
-                                id="usernameInput" 
-                                type="text" 
-                                placeholder="@username (3-20 characters, letters/numbers/_)"
-                                pattern="^[a-zA-Z0-9_]{3,20}$"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                            />
-                            <p class="text-xs text-gray-500 mt-1">Username can only be set once</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-                            <input 
-                                id="profileDisplayNameInput" 
-                                type="text" 
-                                placeholder="Your display name"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                            />
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-                            <textarea 
-                                id="bioInput" 
-                                placeholder="Tell us about yourself (max 200 characters)"
-                                maxlength="200"
-                                rows="3"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                            ></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                            <input 
-                                id="websiteInput" 
-                                type="url" 
-                                placeholder="https://your-website.com"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                            />
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
-                                <input 
-                                    id="twitterInput" 
-                                    type="text" 
-                                    placeholder="@twitter_handle"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                                />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
-                                <input 
-                                    id="instagramInput" 
-                                    type="text" 
-                                    placeholder="@instagram_handle"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                                />
-                            </div>
-                        </div>
-                        
-                        <div class="pt-4">
-                            <button type="submit" class="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
-                                Update Profile
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Auth Modal -->
-        <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white p-8 rounded-lg max-w-sm w-full">
-                <h3 class="text-xl font-light mb-4">Sign In / Sign Up</h3>
-                <input 
-                    id="displayNameInput" 
-                    type="text" 
-                    placeholder="Display Name"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                />
-                <input 
-                    id="emailInput" 
-                    type="email" 
-                    placeholder="Email"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                />
-                <input 
-                    id="passwordInput" 
-                    type="password" 
-                    placeholder="Password"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                />
-                <div class="flex gap-4">
-                    <button id="signInBtn" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                        Sign In
-                    </button>
-                    <button id="signUpBtn" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Sign Up
-                    </button>
-                </div>
-                <button id="closeAuthBtn" class="w-full mt-4 text-sm text-gray-500 hover:text-gray-700">
-                    Cancel
-                </button>
-            </div>
-        </div>
+  <main>
+    <div class="card">
+      <p class="haiku" id="haiku" aria-live="polite" aria-atomic="true"></p>
+      <p class="address">No. <b id="addr"></b></p>
+      <p class="hall">Hall <span id="hallNo"></span> of <span id="hallTotal"></span> · <button type="button" id="shapeBtn" aria-expanded="false">shape</button></p>
+      <div class="shape" id="shape"></div>
+      <div class="controls">
+        <button class="btn" id="prevBtn" title="Previous address (←)">← Previous</button>
+        <button class="btn primary" id="wanderBtn" title="Open a random shelf (R)">Wander</button>
+        <button class="btn" id="nextBtn" title="Next address (→)">Next →</button>
+      </div>
+      <div class="controls">
+        <button class="btn quiet" id="copyBtn">Copy haiku</button>
+        <button class="btn quiet" id="linkBtn">Copy link</button>
+        <button class="btn quiet" id="uniformBtn" title="A truly uniform draw from all addresses">Strict random</button>
+      </div>
     </div>
 
-    <script>
-        // Firebase Configuration - REPLACE WITH YOUR CONFIG
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+    <section>
+      <h2>Open an address</h2>
+      <form class="row" id="gotoForm">
+        <label class="sr-only" for="gotoInput">Address</label>
+        <input type="text" id="gotoInput" inputmode="numeric" placeholder="Any number from 1 to the total" autocomplete="off">
+        <button class="btn" type="submit">Open</button>
+      </form>
+      <p class="hint">Neighbouring addresses differ by a single word. Walk with <kbd>←</kbd> and <kbd>→</kbd>.</p>
+    </section>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    <section>
+      <h2>Search the library</h2>
+      <label class="sr-only" for="searchInput">Search</label>
+      <textarea id="searchInput" placeholder="A phrase, like “the river listens”, or a whole haiku on three lines."></textarea>
+      <div class="row" style="margin-top:0.5rem">
+        <button class="btn" id="searchBtn">Find</button>
+        <button class="btn quiet" id="againBtn" hidden>Find another</button>
+      </div>
+      <div class="result" id="result"></div>
+    </section>
 
-        // App State
-        let currentUser = null;
-        let currentHaiku = null;
-        let currentView = 'home';
+    <section>
+      <details>
+        <summary>How the library is built</summary>
+        <div class="body">
+          <p>Nothing here is stored. A haiku is computed from its address and the address is computed from the haiku, so the whole library fits in one small file and a page can never be lost.</p>
+          <p>The library has a vocabulary of a few hundred words, each sorted by its syllable count, and a set of line shapes: twenty for five-syllable lines and twenty-two for seven. A hall is one choice of shape for each of the three lines, so there are <span id="hallsInline"></span> halls. Inside a hall the words turn over like the digits of an odometer, last slot fastest, which is why walking to the next address changes one word.</p>
+          <p>Add up every hall and you get the total at the top of the page. It is finite. If you search for a word the vocabulary does not contain, the library will tell you so honestly: that poem is in some other library.</p>
+          <p>“Wander” picks a hall first and then a shelf inside it, so every grammatical shape turns up equally often. “Strict random” draws uniformly from all addresses, which almost always lands in the biggest halls. Both are real addresses.</p>
+          <p>With apologies and thanks to Jorge Luis Borges, and to Jonathan Basile’s <a href="https://libraryofbabel.info" rel="noopener">Library of Babel</a>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>The vocabulary</summary>
+        <div class="body"><div class="vocab" id="vocab"></div></div>
+      </details>
+    </section>
+  </main>
 
-        // HTML escaping utility to prevent XSS
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+  <footer>
+    <a href="https://github.com/bshepp/every-haiku" rel="noopener">Source</a> · MIT
+  </footer>
+</div>
+<div class="status" id="status" role="status"></div>
 
-        // Syllable counting data
-        const syllableData = {
-            1: ['sun', 'moon', 'rain', 'snow', 'wind', 'cloud', 'tree', 'leaf', 'bird', 'sky', 'pond', 'frog', 'stone', 'path', 'night', 'day', 'spring', 'fall', 'peace', 'calm', 'light', 'dark', 'soft', 'still', 'cool', 'warm', 'sweet', 'fresh', 'old', 'new'],
-            2: ['morning', 'evening', 'winter', 'summer', 'autumn', 'mountain', 'river', 'garden', 'temple', 'cherry', 'blossom', 'gentle', 'silence', 'petals', 'shadow', 'moonlight', 'water', 'quiet', 'empty', 'ancient', 'golden', 'silver', 'drifting', 'floating', 'dancing'],
-            3: ['butterfly', 'dragonfly', 'waterfall', 'memories', 'reflection', 'solitude', 'tranquility', 'meditation', 'awakening', 'whispering', 'blossoming', 'wandering', 'listening', 'wondering', 'following']
-        };
+<script src="library.js"></script>
+<script>
+(function () {
+  const L = window.EveryHaiku;
+  const $ = (id) => document.getElementById(id);
 
-        // Haiku templates for non-AI generation
-        const haikuTemplates = [
-            { line1: [2, 3], line2: [2, 2, 3], line3: [1, 2, 2] },
-            { line1: [3, 2], line2: [1, 3, 3], line3: [2, 3] },
-            { line1: [1, 1, 3], line2: [2, 1, 2, 2], line3: [1, 1, 3] }
-        ];
+  let current = null; // 0-based BigInt
+  let lastQuery = "";
 
-        // Generate non-AI haiku
-        function generateNonAIHaiku(theme) {
-            const template = haikuTemplates[Math.floor(Math.random() * haikuTemplates.length)];
-            
-            const generateLine = (syllablePattern) => {
-                return syllablePattern.map(count => {
-                    const words = syllableData[count];
-                    return words[Math.floor(Math.random() * words.length)];
-                }).join(' ');
-            };
+  $("total").textContent = L.withCommas(L.TOTAL) + " (about " + L.approximate(L.TOTAL) + ")";
+  $("hallTotal").textContent = L.withCommas(BigInt(L.HALL_COUNT));
+  $("hallsInline").textContent = L.withCommas(BigInt(L.HALL_COUNT));
 
-            const line1 = generateLine(template.line1);
-            const line2 = generateLine(template.line2);
-            const line3 = generateLine(template.line3);
+  function parseAddress(text) {
+    const digits = String(text).replace(/[^\d]/g, "");
+    if (!digits) return null;
+    const n = BigInt(digits) - 1n;
+    if (n < 0n || n >= L.TOTAL) return null;
+    return n;
+  }
 
-            return `${line1}\n${line2}\n${line3}`;
-        }
+  function show(n, { push = true } = {}) {
+    const h = L.decode(n);
+    current = n;
+    const el = $("haiku");
+    el.classList.add("fading");
+    setTimeout(() => {
+      el.textContent = h.text;
+      el.classList.remove("fading");
+    }, 120);
+    $("addr").textContent = L.withCommas(n + 1n);
+    $("hallNo").textContent = L.withCommas(BigInt(h.hall + 1));
+    $("shape").innerHTML = h.shape.map((s) => "<code>" + s + "</code>").join("<br>");
+    $("prevBtn").disabled = n === 0n;
+    $("nextBtn").disabled = n === L.TOTAL - 1n;
+    document.title = "Every Haiku · No. " + L.withCommas(n + 1n);
+    const hash = "#" + (n + 1n).toString();
+    if (location.hash !== hash) {
+      if (push) history.pushState(null, "", hash);
+      else history.replaceState(null, "", hash);
+    }
+  }
 
-        // Generate hashtags using Cloud Function
-        async function generateHashtags(theme, haiku) {
-            const functions = firebase.functions();
-            const generateHashtagsFunc = functions.httpsCallable('generateHashtags');
-            
-            try {
-                const result = await generateHashtagsFunc({ theme, content: haiku });
-                return result.data;
-            } catch (error) {
-                console.error('Error generating hashtags:', error);
-                // Fallback to basic hashtags
-                const baseHashtags = ['#haiku', '#poetry', '#mindfulness'];
-                if (theme) {
-                    baseHashtags.push(`#${theme.toLowerCase().replace(/\s+/g, '')}`);
-                }
-                return baseHashtags.slice(0, 5);
-            }
-        }
+  function flash(msg) {
+    const s = $("status");
+    s.textContent = msg;
+    s.classList.add("show");
+    clearTimeout(flash.t);
+    flash.t = setTimeout(() => s.classList.remove("show"), 1600);
+  }
 
-        // Generate AI haiku using Cloud Function
-        async function generateAIHaiku(theme) {
-            const functions = firebase.functions();
-            const generateAIHaikuFunc = functions.httpsCallable('generateAIHaiku');
-            
-            try {
-                const result = await generateAIHaikuFunc({ theme });
-                return result.data.haiku;
-            } catch (error) {
-                console.error('Error generating AI haiku:', error);
-                // Fallback to template-based generation if AI fails
-                console.log('Falling back to template-based generation');
-                return generateNonAIHaiku(theme);
-            }
-        }
+  function copy(text, done) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => flash(done), () => flash("Could not copy"));
+    } else {
+      flash("Copy is not available here");
+    }
+  }
 
-        // View Management
-        function showView(view) {
-            currentView = view;
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('savedView').classList.add('hidden');
-            document.getElementById('galleryView').classList.add('hidden');
-            document.getElementById('statsView').classList.add('hidden');
-            document.getElementById('profileView').classList.add('hidden');
-            
-            document.getElementById(`${view}View`).classList.remove('hidden');
-            
-            if (view === 'saved' && currentUser) {
-                loadSavedHaikus();
-            } else if (view === 'gallery') {
-                loadGalleryHaikus();
-            } else if (view === 'stats' && currentUser) {
-                loadUserStats();
-            } else if (view === 'profile' && currentUser) {
-                loadUserProfile();
-            }
-        }
+  $("prevBtn").addEventListener("click", () => { if (current > 0n) show(current - 1n); });
+  $("nextBtn").addEventListener("click", () => { if (current < L.TOTAL - 1n) show(current + 1n); });
+  $("wanderBtn").addEventListener("click", () => show(L.wanderAddress()));
+  $("uniformBtn").addEventListener("click", () => show(L.randomAddress()));
+  $("copyBtn").addEventListener("click", () => copy(L.decode(current).text + "\n\nNo. " + L.withCommas(current + 1n) + " · " + location.href, "Haiku copied"));
+  $("linkBtn").addEventListener("click", () => copy(location.href, "Link copied"));
+  $("shapeBtn").addEventListener("click", () => {
+    const open = $("shape").classList.toggle("open");
+    $("shapeBtn").setAttribute("aria-expanded", String(open));
+  });
 
-        // Auth Functions
-        auth.onAuthStateChanged((user) => {
-            currentUser = user;
-            const authBtn = document.getElementById('authBtn');
-            const statsBtn = document.getElementById('statsBtn');
-            const profileBtn = document.getElementById('profileBtn');
-            if (user) {
-                authBtn.textContent = 'Sign Out';
-                statsBtn.classList.remove('hidden');
-                profileBtn.classList.remove('hidden');
-            } else {
-                authBtn.textContent = 'Sign In';
-                statsBtn.classList.add('hidden');
-                profileBtn.classList.add('hidden');
-            }
-        });
+  $("gotoForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const n = parseAddress($("gotoInput").value);
+    if (n === null) { flash("That address is not in this library"); return; }
+    show(n);
+    $("gotoInput").value = "";
+  });
 
-        // Event Listeners
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            const theme = document.getElementById('themeInput').value;
-            const useAI = document.getElementById('aiToggle').checked;
-            
-            const generateBtn = document.getElementById('generateBtn');
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Generating...';
-            
-            try {
-                let haikuText;
-                if (useAI) {
-                    haikuText = await generateAIHaiku(theme);
-                } else {
-                    haikuText = generateNonAIHaiku(theme);
-                }
-                
-                const hashtags = await generateHashtags(theme, haikuText);
-                
-                // Save to Firestore and get the document ID
-                const haikuData = {
-                    content: haikuText,
-                    theme: theme || 'general',
-                    isAI: useAI,
-                    hashtags: hashtags,
-                    userId: currentUser ? currentUser.uid : null,
-                    isPublic: false,
-                    isSaved: false,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    likes: 0,
-                    likedBy: []
-                };
-                
-                let haikuId = null;
-                if (currentUser) {
-                    const docRef = await db.collection('haikus').add(haikuData);
-                    haikuId = docRef.id;
-                }
-                
-                currentHaiku = {
-                    ...haikuData,
-                    id: haikuId
-                };
-                
-                document.getElementById('haikuText').textContent = haikuText;
-                document.getElementById('haikuHashtags').textContent = hashtags.join(' ');
-                document.getElementById('haikuDisplay').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error generating haiku:', error);
-                alert('Error generating haiku. Please try again.');
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Haiku';
-            }
-        });
+  function renderResult(r, query) {
+    const out = $("result");
+    const again = $("againBtn");
+    again.hidden = true;
+    if (r.kind === "empty") { out.innerHTML = ""; return; }
+    if (r.kind === "unknown") {
+      out.innerHTML = "<p>The library does not know the word" + (r.unknown.length > 1 ? "s" : "") + " " +
+        r.unknown.map((w) => "<span class=\"unknown\">" + esc(w) + "</span>").join(", ") +
+        ". That poem is in some other library. Every word here is listed under <em>The vocabulary</em> below.</p>";
+      return;
+    }
+    if (r.kind === "unordered") {
+      out.innerHTML = "<p>Every one of those words is on the shelves, but never in that order on a single line.</p>";
+      return;
+    }
+    const n = r.address;
+    const h = L.decode(n);
+    const link = location.pathname + "#" + (n + 1n).toString();
+    let lead;
+    if (r.kind === "exact") {
+      lead = r.addresses.length > 1
+        ? "This haiku is shelved at " + r.addresses.length + " addresses. The first:"
+        : "This haiku is shelved at exactly one address.";
+    } else {
+      lead = "“" + esc(L.normalizeTokens(query).join(" ")) + "” appears here" +
+        (r.matches > 1 ? " (one of " + r.matches + " line shapes that can hold it)" : "") + ":";
+      again.hidden = false;
+    }
+    out.innerHTML = "<div class=\"found\"><p>" + lead + "</p><pre>" + esc(h.text) + "</pre>" +
+      "<p>No. <a class=\"n\" href=\"" + link + "\" data-addr=\"" + (n + 1n).toString() + "\">" + L.withCommas(n + 1n) + "</a></p></div>";
+    out.querySelector("a.n").addEventListener("click", (e) => {
+      e.preventDefault();
+      show(n);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            if (currentHaiku) {
-                const text = `${currentHaiku.content}\n\n${currentHaiku.hashtags.join(' ')}`;
-                navigator.clipboard.writeText(text).then(() => {
-                    const copyBtn = document.getElementById('copyBtn');
-                    copyBtn.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyBtn.textContent = 'Copy';
-                    }, 2000);
-                });
-            }
-        });
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]));
+  }
 
-        document.getElementById('saveBtn').addEventListener('click', async () => {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            
-            if (currentHaiku && currentHaiku.id) {
-                try {
-                    // Update existing haiku instead of creating duplicate
-                    const batch = db.batch();
-                    
-                    // Update haiku document
-                    batch.update(db.collection('haikus').doc(currentHaiku.id), {
-                        isSaved: true,
-                        savedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Add to user's saved collection
-                    batch.set(db.collection('userHaikus').doc(currentUser.uid)
-                        .collection('saved').doc(currentHaiku.id), {
-                        savedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    await batch.commit();
-                    
-                    const saveBtn = document.getElementById('saveBtn');
-                    saveBtn.textContent = 'Saved!';
-                    setTimeout(() => {
-                        saveBtn.textContent = 'Save';
-                    }, 2000);
-                } catch (error) {
-                    console.error('Error saving haiku:', error);
-                    alert('Error saving haiku. Please try again.');
-                }
-            }
-        });
+  function runSearch() {
+    lastQuery = $("searchInput").value;
+    renderResult(L.search(lastQuery), lastQuery);
+  }
+  $("searchBtn").addEventListener("click", runSearch);
+  $("againBtn").addEventListener("click", runSearch);
+  $("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runSearch(); }
+  });
 
-        document.getElementById('shareTwitterBtn').addEventListener('click', () => {
-            if (currentHaiku) {
-                const text = `${currentHaiku.content}\n\n${currentHaiku.hashtags.join(' ')}`;
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-                window.open(url, '_blank');
-            }
-        });
+  document.addEventListener("keydown", (e) => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea") return;
+    if (e.key === "ArrowLeft") $("prevBtn").click();
+    else if (e.key === "ArrowRight") $("nextBtn").click();
+    else if (e.key === "r" || e.key === "R") $("wanderBtn").click();
+  });
 
-        document.getElementById('makePublicBtn').addEventListener('click', async () => {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            
-            if (currentHaiku) {
-                try {
-                    if (currentHaiku.id) {
-                        // Update existing haiku
-                        await db.collection('haikus').doc(currentHaiku.id).update({
-                            isPublic: true,
-                            isSaved: true,
-                            madePublicAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    } else {
-                        // Create new haiku if no ID exists
-                        const haikuRef = await db.collection('haikus').add({
-                            ...currentHaiku,
-                            userId: currentUser.uid,
-                            isPublic: true,
-                            isSaved: true
-                        });
-                        currentHaiku.id = haikuRef.id;
-                    }
-                    
-                    const btn = document.getElementById('makePublicBtn');
-                    btn.textContent = 'Made Public!';
-                    setTimeout(() => {
-                        btn.textContent = 'Make Public';
-                    }, 2000);
-                } catch (error) {
-                    console.error('Error making haiku public:', error);
-                    alert('Error making haiku public. Please try again.');
-                }
-            }
-        });
+  // Vocabulary listing.
+  $("vocab").innerHTML = L.vocabulary().map((c) =>
+    "<div><h3>" + c.label + ", " + c.syllables + (c.syllables === 1 ? " syllable" : " syllables") +
+    " <span style=\"color:var(--muted)\">(" + c.words.length + ")</span></h3><p>" + c.words.join(", ") + "</p></div>"
+  ).join("");
 
-        // Navigation
-        document.getElementById('homeBtn').addEventListener('click', () => showView('home'));
-        document.getElementById('savedBtn').addEventListener('click', () => {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            showView('saved');
-        });
-        document.getElementById('galleryBtn').addEventListener('click', () => showView('gallery'));
-        document.getElementById('statsBtn').addEventListener('click', () => {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            showView('stats');
-        });
-        document.getElementById('profileBtn').addEventListener('click', () => {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            showView('profile');
-        });
+  function fromHash() {
+    const n = parseAddress(location.hash.slice(1));
+    if (n === null) return false;
+    show(n, { push: false });
+    return true;
+  }
+  window.addEventListener("hashchange", () => { fromHash(); });
+  window.addEventListener("popstate", () => { fromHash(); });
 
-        // Auth
-        document.getElementById('authBtn').addEventListener('click', () => {
-            if (currentUser) {
-                auth.signOut();
-            } else {
-                document.getElementById('authModal').classList.remove('hidden');
-            }
-        });
-
-        document.getElementById('signUpBtn').addEventListener('click', async () => {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            const displayName = document.getElementById('displayNameInput').value;
-            
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    displayName: displayName,
-                    username: null, // Will be set in profile later
-                    bio: '',
-                    avatarUrl: '',
-                    website: '',
-                    socialLinks: {
-                        twitter: '',
-                        instagram: ''
-                    },
-                    stats: {
-                        totalHaikus: 0,
-                        totalLikes: 0,
-                        totalFollowers: 0,
-                        totalFollowing: 0
-                    },
-                    preferences: {
-                        defaultPublic: false,
-                        emailNotifications: true
-                    },
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                document.getElementById('authModal').classList.add('hidden');
-            } catch (error) {
-                alert(error.message);
-            }
-        });
-
-        document.getElementById('signInBtn').addEventListener('click', async () => {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                document.getElementById('authModal').classList.add('hidden');
-            } catch (error) {
-                alert(error.message);
-            }
-        });
-
-        document.getElementById('closeAuthBtn').addEventListener('click', () => {
-            document.getElementById('authModal').classList.add('hidden');
-        });
-
-        // Load saved haikus
-        async function loadSavedHaikus() {
-            if (!currentUser) return;
-            
-            const savedHaikusList = document.getElementById('savedHaikusList');
-            savedHaikusList.innerHTML = '';
-            
-            try {
-                const snapshot = await db.collection('userHaikus')
-                    .doc(currentUser.uid)
-                    .collection('saved')
-                    .orderBy('savedAt', 'desc')
-                    .get();
-                
-                for (const doc of snapshot.docs) {
-                    const haikuDoc = await db.collection('haikus').doc(doc.id).get();
-                    if (haikuDoc.exists) {
-                        const haiku = haikuDoc.data();
-                        const haikuEl = await createHaikuElement(haiku, haikuDoc.id);
-                        savedHaikusList.appendChild(haikuEl);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading saved haikus:', error);
-            }
-        }
-
-        // Load gallery haikus
-        async function loadGalleryHaikus() {
-            const galleryList = document.getElementById('galleryList');
-            galleryList.innerHTML = '';
-            
-            try {
-                const snapshot = await db.collection('haikus')
-                    .where('isPublic', '==', true)
-                    .orderBy('createdAt', 'desc')
-                    .limit(20)
-                    .get();
-                
-                // Batch-fetch unique author profiles to avoid N+1 queries
-                const userIds = [...new Set(snapshot.docs.map(d => d.data().userId).filter(Boolean))];
-                const userMap = {};
-                // Firestore 'in' queries support up to 30 values
-                for (let i = 0; i < userIds.length; i += 30) {
-                    const batch = userIds.slice(i, i + 30);
-                    const usersSnap = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
-                    usersSnap.forEach(uDoc => { userMap[uDoc.id] = uDoc.data(); });
-                }
-
-                for (const doc of snapshot.docs) {
-                    const haiku = doc.data();
-                    const haikuEl = await createHaikuElement(haiku, doc.id, userMap);
-                    galleryList.appendChild(haikuEl);
-                }
-            } catch (error) {
-                console.error('Error loading gallery haikus:', error);
-            }
-        }
-
-        // Create haiku element with enhanced features
-        // userMap is an optional pre-fetched map of userId -> userData to avoid extra queries
-        async function createHaikuElement(haiku, id, userMap) {
-            const div = document.createElement('div');
-            div.className = 'bg-white p-6 rounded-lg shadow-sm fade-in';
-            div.id = `haiku-${id}`;
-            
-            // Get author info — use pre-fetched map if available, otherwise fetch individually
-            let authorName = 'Anonymous';
-            let authorUsername = '';
-            if (haiku.userId) {
-                if (userMap && userMap[haiku.userId]) {
-                    const userData = userMap[haiku.userId];
-                    authorName = userData.displayName || 'Anonymous';
-                    authorUsername = userData.username ? `@${userData.username}` : '';
-                } else {
-                    try {
-                        const userDoc = await db.collection('users').doc(haiku.userId).get();
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            authorName = userData.displayName || 'Anonymous';
-                            authorUsername = userData.username ? `@${userData.username}` : '';
-                        }
-                    } catch (error) {
-                        console.error('Error fetching author:', error);
-                    }
-                }
-            }
-            
-            // Check if current user has liked this haiku
-            let isLiked = false;
-            if (currentUser && haiku.likedBy && haiku.likedBy.includes(currentUser.uid)) {
-                isLiked = true;
-            }
-            
-            div.innerHTML = `
-                <div class="mb-3">
-                    <p class="text-sm font-medium text-gray-700">${escapeHtml(authorName)} <span class="text-gray-400">${escapeHtml(authorUsername)}</span></p>
-                </div>
-                <p class="haiku-text mb-3">${escapeHtml(haiku.content).replace(/\n/g, '<br>')}</p>
-                <p class="text-sm text-gray-500 mb-4">${(haiku.hashtags || []).map(h => escapeHtml(h)).join(' ')}</p>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <button class="like-btn flex items-center gap-1 text-gray-500 hover:text-red-500 transition" data-haiku-id="${id}">
-                            <svg class="w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                            <span class="like-count">${haiku.likes || 0}</span>
-                        </button>
-                        ${currentUser && haiku.userId !== currentUser.uid ? `
-                        <button class="collection-btn text-gray-500 hover:text-blue-500 transition" data-haiku-id="${id}" title="Add to collection">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                            </svg>
-                        </button>
-                        ` : ''}
-                    </div>
-                    <div class="text-xs text-gray-400">
-                        <span>${haiku.isAI ? 'AI Generated' : 'Classic Style'}</span>
-                        ${haiku.theme ? ` • ${escapeHtml(haiku.theme)}` : ''}
-                    </div>
-                </div>
-            `;
-            
-            // Add event listeners
-            const likeBtn = div.querySelector('.like-btn');
-            if (likeBtn) {
-                likeBtn.addEventListener('click', () => toggleLike(id));
-            }
-            
-            const collectionBtn = div.querySelector('.collection-btn');
-            if (collectionBtn) {
-                collectionBtn.addEventListener('click', () => showAddToCollectionModal(id));
-            }
-            
-            return div;
-        }
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const haikus = document.querySelectorAll('#savedHaikusList > div');
-            
-            haikus.forEach(haiku => {
-                const text = haiku.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    haiku.style.display = 'block';
-                } else {
-                    haiku.style.display = 'none';
-                }
-            });
-        });
-
-        // Toggle like on haiku
-        async function toggleLike(haikuId) {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            
-            try {
-                const functions = firebase.functions();
-                const toggleLikeFunc = functions.httpsCallable('toggleLike');
-                const result = await toggleLikeFunc({ haikuId });
-                
-                // Update UI
-                const haikuEl = document.getElementById(`haiku-${haikuId}`);
-                if (haikuEl) {
-                    const likeBtn = haikuEl.querySelector('.like-btn');
-                    const likeSvg = likeBtn.querySelector('svg');
-                    const likeCount = likeBtn.querySelector('.like-count');
-                    
-                    if (result.data.liked) {
-                        likeSvg.classList.add('fill-red-500', 'text-red-500');
-                    } else {
-                        likeSvg.classList.remove('fill-red-500', 'text-red-500');
-                    }
-                    
-                    likeCount.textContent = result.data.likes;
-                }
-            } catch (error) {
-                console.error('Error toggling like:', error);
-                alert('Failed to update like');
-            }
-        }
-
-        // Show add to collection modal
-        async function showAddToCollectionModal(haikuId) {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            
-            // TODO: Implement collection modal
-            alert('Collection feature coming soon!');
-        }
-
-        // Load user stats
-        async function loadUserStats() {
-            if (!currentUser) return;
-            
-            try {
-                const functions = firebase.functions();
-                const getUserStatsFunc = functions.httpsCallable('getUserStats');
-                const result = await getUserStatsFunc();
-                
-                document.getElementById('totalCount').textContent = result.data.total;
-                document.getElementById('savedCount').textContent = result.data.saved;
-                document.getElementById('publicCount').textContent = result.data.public;
-            } catch (error) {
-                console.error('Error loading user stats:', error);
-                document.getElementById('totalCount').textContent = '?';
-                document.getElementById('savedCount').textContent = '?';
-                document.getElementById('publicCount').textContent = '?';
-            }
-        }
-
-        // Load user profile
-        async function loadUserProfile() {
-            if (!currentUser) return;
-            
-            try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    
-                    // Populate form fields
-                    document.getElementById('usernameInput').value = userData.username || '';
-                    document.getElementById('profileDisplayNameInput').value = userData.displayName || '';
-                    document.getElementById('bioInput').value = userData.bio || '';
-                    document.getElementById('websiteInput').value = userData.website || '';
-                    document.getElementById('twitterInput').value = userData.socialLinks?.twitter || '';
-                    document.getElementById('instagramInput').value = userData.socialLinks?.instagram || '';
-                    
-                    // Disable username if already set
-                    if (userData.username) {
-                        document.getElementById('usernameInput').disabled = true;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-            }
-        }
-
-        // Profile form submission
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!currentUser) return;
-            
-            const profileData = {
-                displayName: document.getElementById('profileDisplayNameInput').value,
-                bio: document.getElementById('bioInput').value,
-                website: document.getElementById('websiteInput').value,
-                socialLinks: {
-                    twitter: document.getElementById('twitterInput').value,
-                    instagram: document.getElementById('instagramInput').value
-                }
-            };
-            
-            // Only include username if not disabled (not yet set)
-            const usernameInput = document.getElementById('usernameInput');
-            if (!usernameInput.disabled && usernameInput.value) {
-                profileData.username = usernameInput.value;
-            }
-            
-            try {
-                const functions = firebase.functions();
-                const updateProfileFunc = functions.httpsCallable('updateProfile');
-                const result = await updateProfileFunc(profileData);
-                
-                if (result.data.success) {
-                    alert('Profile updated successfully!');
-                    if (result.data.username) {
-                        // Disable username field after successful set
-                        usernameInput.disabled = true;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                alert(error.message || 'Failed to update profile');
-            }
-        });
-    </script>
+  if (!fromHash()) show(L.wanderAddress(), { push: false });
+})();
+</script>
 </body>
 </html>

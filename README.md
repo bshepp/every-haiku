@@ -1,286 +1,108 @@
-# Every Haiku - AI-Powered Haiku Generator
+# Every Haiku
 
-A minimalist web application for generating, saving, and sharing haikus. Features both AI-powered generation using Claude API and template-based generation with traditional 5-7-5 syllable patterns.
+*A haiku slice of the infinite library.*
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Firebase](https://img.shields.io/badge/Firebase-11.x-orange.svg)
-![Node](https://img.shields.io/badge/Node.js-20.x-green.svg)
-![Status](https://img.shields.io/badge/Status-Beta-yellow.svg)
+Every Haiku is a finite, fully enumerable library of 5-7-5 haikus. Each haiku
+has exactly one integer address, and each address below the total opens
+exactly one haiku. Nothing is stored and nothing is generated at random on a
+server: the poem is computed from its address, and the address is computed
+from the poem. The whole library is a single static page with no build step,
+no dependencies, no accounts, and no cost to run.
 
-> **Sibling art-project data:** the shared quantum-art data archive (gallery, Braket results, pre-teardown S3 backup) lives at **`F:\_shared-resources\QUANTUM-DATA-ARCHIVE\`**, shared across the art projects (`every-haiku`, `quantum-art-pipeline`, `digital-ai-art-curator`). Not used by every-haiku directly — recorded here for cross-project reference.
+**Live:** https://bshepp.github.io/every-haiku/
 
-## Features
+## What you can do
 
-### What Works ✅
-- 🤖 **AI Generation**: Haikus using Claude API
-- 📝 **Template Fallback**: Classic 5-7-5 syllable generation if AI fails
-- 🔐 **Authentication**: Email/password with Firebase
-- 💾 **Save Haikus**: Keep your favorites
-- 🌐 **Gallery**: Browse and like other users' haikus
-- 🔍 **Search**: Find your saved haikus
-- #️⃣ **Auto-Hashtags**: Automatic social media hashtags
-- 🐦 **Share on X**: Direct Twitter/X sharing
-- 👤 **User Profiles**: Set username, bio, links
-- ❤️ **Likes**: Like other users' haikus
-- 📱 **Responsive**: Desktop and mobile compatible
+- **Wander.** Open a random shelf. Every grammatical shape is equally likely.
+- **Walk.** Step to the previous or next address with the arrow keys.
+  Neighbouring haikus differ by a single word.
+- **Open an address.** Type any number from 1 to the total.
+- **Search.** Paste a phrase and the library finds a haiku that contains it,
+  then gives you its address. Paste a whole haiku on three lines and it tells
+  you exactly where that poem is shelved. Search for a word the library does
+  not know and it says so.
+- **Share.** Every address is a permalink: `…/#1234567890`.
 
-### In Progress ⚠️
-- 👥 **Collections**: Backend done, UI not yet implemented
-- 📊 **Following**: Backend done, UI not yet implemented
-- 📈 **User Stats**: Basic tracking, minimal UI
-- 🖼️ **Avatars**: Not yet implemented
+## How the library is built
 
-## Tech Stack
+The vocabulary is a few hundred words, each placed in a class by part of
+speech and syllable count (`N1` is one-syllable nouns, `A3` is three-syllable
+adjectives, and so on). Line templates mix fixed words with slots drawn from
+those classes, and the test suite proves every five-line template sums to
+five syllables and every seven-line template to seven.
 
-- **Frontend**: Vanilla JavaScript (ES6+), TailwindCSS v3
-- **Backend**: Firebase Cloud Functions v6 (Node.js 20)
-- **Database**: Cloud Firestore with advanced indexing
-- **Authentication**: Firebase Auth with enhanced user profiles
-- **Hosting**: Firebase Hosting
-- **AI**: Anthropic Claude API
-- **Security**: Rate limiting, input validation, comprehensive security rules
+A **hall** is one choice of template for each of the three lines. With 20
+five-syllable templates and 22 seven-syllable templates there are
+20 × 22 × 20 = 8,800 halls. Within a hall the slot words turn over like the
+digits of an odometer, last slot fastest, which is a mixed-radix number
+system. Lay the halls end to end and every haiku gets a unique address.
 
-## Project Structure
+| | |
+|---|---|
+| Halls | 8,800 |
+| Vocabulary | 419 words |
+| Haikus | 34,985,525,500,137,095,382,456 (about 34.9 sextillion) |
 
-```
-every-haiku/
-├── docs/                       # 📚 Documentation
-│   ├── README.md              # Doc index (START HERE)
-│   ├── QUICK_REFERENCE.md     # Commands & shortcuts
-│   ├── CLAUDE.md              # Dev notes
-│   ├── setup-instructions.md  # Setup & deploy
-│   ├── TESTING.md             # Testing info
-│   ├── AI_AGENT_GUIDELINES.md # Dev guidelines
-│   └── archived/              # Historical docs
-├── public/
-│   └── index.html             # Main application (SPA)
-├── functions/
-│   ├── index.js               # Cloud Functions
-│   ├── package.json           # Function dependencies
-│   └── __tests__/             # Tests
-├── cypress/                    # E2E tests
-├── .github/workflows/test.yml # CI/CD pipeline
-├── firebase.json              # Firebase config
-├── firestore.rules            # Database security
-├── package.json               # Root config
-├── test-all.sh                # Test runner (Linux/macOS)
-├── test-all.ps1               # Test runner (Windows)
-└── README.md                  # This file
-```
+Addresses are handled as `BigInt`, so the arithmetic is exact. Random draws
+use `crypto.getRandomValues` with rejection sampling, so "strict random" is
+uniform over all addresses. "Wander" picks a hall first, because a uniform
+draw almost always lands in the handful of halls with the most slots.
 
-## Documentation
+The core lives in [`public/library.js`](public/library.js) and runs unchanged
+in the browser and in Node. The page in [`public/index.html`](public/index.html)
+is plain HTML, CSS and JavaScript.
 
-See [docs/README.md](docs/README.md) for all documentation including:
-- Quick reference and commands
-- Setup and deployment
-- Testing guide
-- Developer notes
-- Historical/archived docs
+## Run it
 
-## Prerequisites
+Open `public/index.html` in a browser. That is the whole deployment.
 
-- Node.js (v20 or higher)
-- npm (v10 or higher)
-- Firebase CLI (`npm install -g firebase-tools`)
-- Firebase project with Firestore, Auth, and Functions enabled
-- Anthropic API key (for AI haiku generation)
-- Git for version control
+For a local server:
 
-## Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/bshepp/every-haiku.git
-   cd every-haiku
-   ```
-
-2. **Install Firebase CLI**
-   ```bash
-   npm install -g firebase-tools
-   ```
-
-3. **Login to Firebase**
-   ```bash
-   firebase login
-   ```
-
-4. **Initialize Firebase project**
-   ```bash
-   firebase init
-   # Select: Firestore, Functions, Hosting
-   # Use existing project or create new
-   ```
-
-5. **Install dependencies**
-   ```bash
-   cd functions
-   npm install
-   cd ..
-   ```
-
-6. **Configure Firebase**
-   - Update Firebase config in `public/index.html` with your project credentials
-   - Get credentials from Firebase Console > Project Settings
-
-7. **Set Claude API key**
-   ```bash
-   firebase functions:secrets:set CLAUDE_API_KEY
-   ```
-
-8. **Deploy Firestore indexes**
-   ```bash
-   firebase deploy --only firestore:indexes
-   ```
-
-9. **Deploy**
-   ```bash
-   firebase deploy
-   ```
-
-## Development
-
-### Run locally with emulators
 ```bash
-firebase emulators:start
+npm run serve
 ```
-Your app will be available at http://localhost:5000
 
-### Deploy individual components
+Then visit http://localhost:8000.
+
+## Test it
+
 ```bash
-firebase deploy --only hosting
-firebase deploy --only functions
-firebase deploy --only firestore:rules
-firebase deploy --only firestore:indexes
+npm test
 ```
 
-## Testing
+The tests check the syllable arithmetic of every template, that halls tile the
+address space with no gaps, that decoding an address and locating the result
+returns the same address (including at hall boundaries and for the first and
+last address), that article agreement (`a` / `an`) survives the round trip,
+and that search behaves on phrases, whole haikus, unknown words and impossible
+orderings. Node 20 or later, no packages.
 
-The project includes a comprehensive testing framework with unit, integration, and end-to-end tests.
+## Deploy it
 
-### Test Stack
-- **Unit Tests**: Jest for Cloud Functions
-- **Integration Tests**: Firebase Emulator + Jest for Firestore rules
-- **E2E Tests**: Cypress for user flows
+Pushes to `master` run the tests and deploy `public/` to GitHub Pages through
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml). In the repository
+settings under **Pages**, set the source to **GitHub Actions** once. Any other
+static host works too: upload the two files in `public/`.
 
-### Quick Test Commands
-```bash
-# Run all tests (Linux/macOS)
-./test-all.sh
+## Extend the vocabulary
 
-# Run all tests (Windows PowerShell)
-.\test-all.ps1
+Add words to the right class in `public/library.js`, keeping the syllable count
+honest. Add line templates to `LINES_5` or `LINES_7` using `{CLASS}` for slots
+and words from `LITERALS` for fixed text. Run `npm test`. Note that any change
+to the vocabulary or templates renumbers the library, so old permalinks point
+at different poems. If that matters, treat the word lists as frozen and start a
+new edition instead.
 
-# Run unit tests
-cd functions && npm test
+## History
 
-# Run E2E tests
-npx cypress open
+Versions 1 and 2 of this repository were a Firebase social app with accounts,
+likes and an AI generator. That code remains in the git history before
+version 3. The pivot to a static enumerable library is what the project was
+always reaching for.
 
-# Run tests with coverage
-cd functions && npm run test:coverage
-```
+## Credits
 
-See [docs/TESTING.md](docs/TESTING.md) for detailed testing documentation.
+With apologies and thanks to Jorge Luis Borges, and to Jonathan Basile's
+[Library of Babel](https://libraryofbabel.info).
 
-## Configuration
-
-⚠️ **IMPORTANT**: Never commit real API keys or credentials to version control. The configuration below uses placeholder values that must be replaced with your actual Firebase project credentials.
-
-### Firebase Configuration
-Update the Firebase config object in `public/index.html`:
-```javascript
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
-```
-
-### Environment Variables
-Set the Claude API key for AI generation (v2 functions use secrets, not `functions.config()`):
-```bash
-firebase functions:secrets:set CLAUDE_API_KEY
-```
-
-## API Endpoints (Cloud Functions)
-
-### Content Generation
-- `generateAIHaiku`: Generate AI-powered haiku using Claude (authenticated, rate-limited)
-- `generateHashtags`: Generate relevant hashtags for haikus (authenticated)
-
-### User Management
-- `updateProfile`: Update user profile information
-- `getUserStats`: Get comprehensive user statistics
-
-### Social Features
-- `toggleLike`: Like or unlike a haiku
-- `toggleFollow`: Follow or unfollow a user
-- `createCollection`: Create a new haiku collection
-- `addToCollection`: Add haiku to a collection
-
-### Maintenance
-- `cleanupOldHaikus`: Scheduled function to delete old unsaved haikus
-
-## Security
-
-- Authentication required for all Cloud Functions (generation, hashtags, social features)
-- Users can only modify their own content
-- Public haikus and profiles visible to all users
-- API keys stored securely using Firebase secrets
-- Comprehensive Firestore security rules with granular access control
-- `likes` and `likedBy` fields are protected from direct client manipulation (server-only via Cloud Functions)
-- Rate limiting on all API endpoints (10 requests/minute)
-- Input validation and sanitization
-- XSS protection in frontend via `escapeHtml()` utility on all user-generated content
-- Username uniqueness enforcement
-
-## Project Status
-
-This project is currently in **Beta**. Core features are complete and stable. See [docs/archived/FUTURE_IMPROVEMENTS.md](docs/archived/FUTURE_IMPROVEMENTS.md) for the roadmap of upcoming features.
-
-### Recent Updates (v2.1)
-- Fixed `FieldValue` import in Cloud Functions (critical bug)
-- Fixed saved haikus loading bug (`doc.id` reference)
-- Added XSS protection via `escapeHtml()` for all user-generated content in gallery
-- Added authentication requirement to `generateHashtags` function
-- Locked `likes`/`likedBy` fields in Firestore rules to prevent client-side manipulation
-- Optimized gallery loading with batch user profile fetching (eliminated N+1 queries)
-- Added Windows-compatible test runner (`test-all.ps1`)
-- Removed deprecated `@firebase/testing` dependency
-
-### Previous Updates (v2.0)
-- Enhanced user profiles with social features
-- Voting/liking system
-- Collections infrastructure
-- Major dependency updates (Firebase SDK v11, Admin SDK v13)
-- Security improvements
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please read:
-- [docs/AI_AGENT_GUIDELINES.md](docs/AI_AGENT_GUIDELINES.md) for development guidelines
-- [docs/archived/FUTURE_IMPROVEMENTS.md](docs/archived/FUTURE_IMPROVEMENTS.md) for planned features
-- [docs/archived/MIGRATION_GUIDE.md](docs/archived/MIGRATION_GUIDE.md) for dependency update information
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Anthropic for Claude API
-- Firebase team for the excellent platform
-- The haiku poetry tradition for inspiration
-
-## Support
-
-For issues, questions, or contributions, please open an issue on GitHub.
+MIT License.
