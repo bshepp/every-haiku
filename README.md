@@ -113,6 +113,23 @@ to the vocabulary or templates renumbers the library, so old permalinks point
 at different poems. If that matters, treat the word lists as frozen and start a
 new edition instead.
 
+## Ideas for later
+
+None of these are underway. They are written down so the thinking is not lost.
+
+- **An MCP server.** The library already runs unchanged in Node, so a server
+  is a thin wrapper that exposes `decode`, `locate`, `search` and `wander` as
+  tools. An agent could then cite a haiku by its address, which suits the
+  whole idea of the place.
+- **A wider vocabulary.** Any new word or line shape renumbers every address,
+  so existing permalinks would open different poems. The clean way is a
+  second edition, with the edition named in the URL, so the current library
+  stays frozen and citable while the new one grows.
+- **Other languages.** Each language would be its own edition for the same
+  reason, with its own syllable rules and line grammar. Japanese is the
+  interesting case: haiku there count morae rather than syllables, and the
+  odometer works just as well over morae.
+
 ## History
 
 Versions 1 and 2 of this repository were a Firebase social app with accounts,

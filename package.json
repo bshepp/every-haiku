@@ -1,6 +1,6 @@
 {
   "name": "every-haiku",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "A haiku slice of the infinite library: every 5-7-5 haiku the library can hold, each with its own address.",
   "private": true,
   "scripts": {
