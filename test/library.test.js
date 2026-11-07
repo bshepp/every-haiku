@@ -134,3 +134,38 @@ test("formatting helpers", () => {
   assert.equal(L.approximate(999n), "999");
   assert.match(L.approximate(L.TOTAL), /illion$/);
 });
+
+test("decode rejects non-address input with a RangeError", () => {
+  for (const bad of ["12abc", "", "1e5", 1.5, NaN, null, undefined, {}, "-3"]) {
+    assert.throws(() => L.decode(bad), RangeError, String(bad));
+  }
+  assert.equal(L.decode("7").address, 7n);
+  assert.equal(L.decode(7).address, 7n);
+  assert.equal(L.decode(" 7 ").address, 7n);
+});
+
+test("multi-line search diagnoses each line instead of phrase-matching", () => {
+  const h = L.decode(123456789n);
+  const broken = h.lines[0] + "\n" + h.lines[1] + "\nmoon";
+  const r = L.search(broken);
+  assert.equal(r.kind, "lines");
+  assert.equal(r.count, 3);
+  assert.deepEqual(r.lines.map((l) => l.ok), [true, true, false]);
+  assert.equal(r.lines[2].text, "moon");
+
+  const two = L.search(h.lines[0] + "\n" + h.lines[1]);
+  assert.equal(two.kind, "lines");
+  assert.equal(two.count, 2);
+  assert.equal(two.lines, undefined);
+
+  // Unknown words still win over line diagnosis.
+  assert.equal(L.search("quantum\nmoon\nmoon").kind, "unknown");
+});
+
+test("phrase search counts distinct line shapes, not template offsets", () => {
+  const r = L.search("moon");
+  assert.equal(r.kind, "phrase");
+  const shapes5 = L.templates5.filter((t) => t.tokens.some((tok) => tok.slot && L.WORDS[tok.slot].includes("moon"))).length;
+  const shapes7 = L.templates7.filter((t) => t.tokens.some((tok) => tok.slot && L.WORDS[tok.slot].includes("moon"))).length;
+  assert.equal(r.matches, shapes5 + shapes7);
+});

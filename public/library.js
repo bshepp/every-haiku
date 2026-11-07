@@ -266,11 +266,24 @@
     return out.join(" ");
   }
 
+  // Accept a BigInt, a safe integer, or a string of digits. Anything else is
+  // not an address, and every failure is the same RangeError so callers can
+  // catch one thing.
+  function toAddress(n) {
+    let v;
+    if (typeof n === "bigint") v = n;
+    else if (typeof n === "number" && Number.isSafeInteger(n)) v = BigInt(n);
+    else if (typeof n === "string" && /^\s*-?\d+\s*$/.test(n)) v = BigInt(n.trim());
+    else throw new RangeError("Not a library address: " + String(n));
+    if (v < 0n || v >= TOTAL) throw new RangeError("Address out of range");
+    return v;
+  }
+
   function decode(n) {
-    n = BigInt(n);
-    if (n < 0n || n >= TOTAL) throw new RangeError("Address out of range");
+    n = toAddress(n);
     const hall = findHall(n);
-    let offset = n - hall.start;
+    const base = n - hall.start;
+    let offset = base;
     const choices = new Array(hall.slots.length);
     for (let s = hall.slots.length - 1; s >= 0; s--) {
       const list = WORDS[hall.slots[s]];
@@ -287,7 +300,7 @@
     return {
       address: n,
       hall: hall.index,
-      offset: n - hall.start,
+      offset: base,
       lines,
       text: lines.join("\n"),
       shape: hall.lines.map((l) => shapeOf(l)),
@@ -467,10 +480,28 @@
     const unknown = tokens.filter((t) => !knownWord(t));
     if (unknown.length) return { kind: "unknown", unknown: [...new Set(unknown)] };
 
+    // Several lines means the user meant a whole haiku, not a phrase. Say
+    // which lines fail instead of searching all the words as one phrase.
+    const typed = splitLines(text);
+    if (typed.length > 1) {
+      if (typed.length !== 3) return { kind: "lines", count: typed.length };
+      const sets = [T5, T7, T5];
+      return {
+        kind: "lines",
+        count: 3,
+        lines: typed.map((line, i) => ({
+          text: line,
+          ok: matchesFor(sets[i], normalizeTokens(line)).length > 0,
+        })),
+      };
+    }
+
     const in5 = phraseMatches(T5, tokens).map((m) => ({ kind5: true, ...m }));
     const in7 = phraseMatches(T7, tokens).map((m) => ({ kind5: false, ...m }));
     const all = in5.concat(in7);
     if (!all.length) return { kind: "unordered" };
+    // A phrase can sit at several offsets in one template; count shapes, not offsets.
+    const shapes = new Set(in5.map((m) => m.template)).size + new Set(in7.map((m) => m.template)).size;
 
     const pick = all[randomInt(all.length)];
     let i;
@@ -492,7 +523,7 @@
     const lines = [T5[i], T7[j], T5[k]];
     const indices = lines.flatMap((l, idx) => fillTemplate(l, fixed[idx]));
     const address = encode(hallIndexFor(i, j, k), indices);
-    return { kind: "phrase", address, matches: all.length };
+    return { kind: "phrase", address, matches: shapes };
   }
 
   // ---------------------------------------------------------------------

@@ -10,7 +10,20 @@ Thumbs.db
 
 # Node (no dependencies, but just in case)
 node_modules/
+package-lock.json
 npm-debug.log*
+
+# Leftovers from the v2 Firebase backend, removed in v3
+functions/
+
+# Secrets and credentials: never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
 
 # Local scratch
 *.log

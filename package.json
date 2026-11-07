@@ -4,7 +4,7 @@
   "description": "A haiku slice of the infinite library: every 5-7-5 haiku the library can hold, each with its own address.",
   "private": true,
   "scripts": {
-    "test": "node --test test/*.test.js",
+    "test": "node --test",
     "serve": "python3 -m http.server 8000 --directory public"
   },
   "repository": {

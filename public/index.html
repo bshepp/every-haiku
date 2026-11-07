@@ -260,12 +260,18 @@
   let lastQuery = "";
 
   $("total").textContent = L.withCommas(L.TOTAL) + " (about " + L.approximate(L.TOTAL) + ")";
-  $("hallTotal").textContent = L.withCommas(BigInt(L.HALL_COUNT));
-  $("hallsInline").textContent = L.withCommas(BigInt(L.HALL_COUNT));
+  const hallCount = L.withCommas(BigInt(L.HALL_COUNT));
+  $("hallTotal").textContent = hallCount;
+  $("hallsInline").textContent = hallCount;
 
+  // "No. 5,000", "#5000", "5 000" and "5_000" all mean 5000. Anything else
+  // that is not plain digits is rejected rather than silently coerced.
   function parseAddress(text) {
-    const digits = String(text).replace(/[^\d]/g, "");
-    if (!digits) return null;
+    const digits = String(text)
+      .trim()
+      .replace(/^(no\.?|#)\s*/i, "")
+      .replace(/[,\s_]/g, "");
+    if (!/^\d+$/.test(digits)) return null;
     const n = BigInt(digits) - 1n;
     if (n < 0n || n >= L.TOTAL) return null;
     return n;
@@ -343,6 +349,23 @@
       out.innerHTML = "<p>Every one of those words is on the shelves, but never in that order on a single line.</p>";
       return;
     }
+    if (r.kind === "lines") {
+      if (r.count !== 3) {
+        out.innerHTML = "<p>A haiku here has three lines; that has " + r.count +
+          ". To search for a phrase, keep it on one line.</p>";
+        return;
+      }
+      const bad = r.lines.map((l, i) => (l.ok ? null : i)).filter((i) => i !== null);
+      const names = ["first", "second", "third"];
+      const need = (i) => (i === 1 ? "seven" : "five") + "-syllable";
+      out.innerHTML = "<p>Every word is on the shelves, but the " +
+        bad.map((i) => names[i]).join(" and ") + " line" + (bad.length > 1 ? "s do" : " does") +
+        " not fit any " + (bad.length === 1 ? need(bad[0]) : "line") +
+        " shape in this library:</p><pre>" +
+        r.lines.map((l) => (l.ok ? "  " : "✗ ") + esc(l.text)).join("\n") +
+        "</pre><p>The shapes are listed under <em>The vocabulary</em> below.</p>";
+      return;
+    }
     const n = r.address;
     const h = L.decode(n);
     const link = location.pathname + "#" + (n + 1n).toString();
@@ -380,6 +403,8 @@
   });
 
   document.addEventListener("keydown", (e) => {
+    // Leave browser chords alone: Ctrl/Cmd+R reloads, Alt+Left goes back.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     const tag = (e.target.tagName || "").toLowerCase();
     if (tag === "input" || tag === "textarea") return;
     if (e.key === "ArrowLeft") $("prevBtn").click();
@@ -399,8 +424,9 @@
     show(n, { push: false });
     return true;
   }
+  // Every navigation here changes only the fragment, so hashchange fires for
+  // back/forward too. A popstate listener as well would render twice.
   window.addEventListener("hashchange", () => { fromHash(); });
-  window.addEventListener("popstate", () => { fromHash(); });
 
   if (!fromHash()) show(L.wanderAddress(), { push: false });
 })();
