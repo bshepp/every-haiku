@@ -25,6 +25,20 @@ no dependencies, no accounts, and no cost to run.
   any shape in the library, it tells you which line and why. Search for a
   word the library does not know and it says so.
 - **Share.** Every address is a permalink: `…/#1234567890`.
+- **Choose a display.** Match the system, or pick light, dark or high
+  contrast. The choice is remembered in the browser. The single-key `r`
+  shortcut can be switched off there too.
+
+## Accessibility
+
+The page is built to WCAG 2.1 AA, which is what Section 508 requires. Text
+sits at 4.5:1 or better and controls at 3:1 or better in every theme; high
+contrast is white on black at 10:1 or better with heavier type. Everything
+works from the keyboard, there is a skip link, focus is always visible, and
+the haiku, search results and status messages are announced to screen
+readers. Motion is switched off when the system asks for reduced motion, and
+Windows High Contrast is respected. The page is checked with axe-core in
+every theme. If you find a barrier, please open an issue.
 
 ## How the library is built
 

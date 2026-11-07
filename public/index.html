@@ -8,6 +8,16 @@
 <meta property="og:title" content="Every Haiku">
 <meta property="og:description" content="A haiku slice of the infinite library. Every haiku here has an address. Find yours.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f1d1a'/%3E%3Cpath d='M8 9h16M8 16h16M8 23h16' stroke='%23e9e2d6' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<script>
+  // Apply a saved display preference before the first paint so the page
+  // does not flash the system theme first.
+  (function () {
+    try {
+      var t = localStorage.getItem("every-haiku-theme");
+      if (t && t !== "system") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) { /* storage unavailable: stay with the system theme */ }
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;1,300&display=swap">
 <style>
@@ -19,7 +29,9 @@
     --line: #e2dbd0;
     --accent: #8a4b2f;
     --accent-ink: #fff;
-    --focus: #c97b4a;
+    --control: #7d766b;   /* borders of inputs and buttons, 4:1 on paper */
+    --focus: #8a4b2f;     /* 6:1 on the page background */
+    --weight: 300;
     color-scheme: light dark;
   }
   @media (prefers-color-scheme: dark) {
@@ -31,6 +43,7 @@
       --line: #35312b;
       --accent: #d9a06f;
       --accent-ink: #1a1510;
+      --control: #8a8276;
       --focus: #e0b088;
     }
   }
@@ -42,7 +55,25 @@
     --line: #35312b;
     --accent: #d9a06f;
     --accent-ink: #1a1510;
+    --control: #8a8276;
     --focus: #e0b088;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  /* High contrast: white on black, every colour at 10:1 or better, heavier type,
+     and no "muted" tone at all. Chosen explicitly, or by the OS asking for more
+     contrast while the display setting is "match system". */
+  :root[data-theme="contrast"] {
+    --bg: #000; --paper: #000; --ink: #fff; --muted: #fff; --line: #fff;
+    --control: #fff; --accent: #ffd54a; --accent-ink: #000; --focus: #4fd1ff;
+    --weight: 400; color-scheme: dark;
+  }
+  @media (prefers-contrast: more) {
+    :root:not([data-theme]) {
+      --bg: #000; --paper: #000; --ink: #fff; --muted: #fff; --line: #fff;
+      --control: #fff; --accent: #ffd54a; --accent-ink: #000; --focus: #4fd1ff;
+      --weight: 400; color-scheme: dark;
+    }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -50,16 +81,34 @@
     background: var(--bg);
     color: var(--ink);
     font-family: "Noto Serif", Georgia, "Times New Roman", serif;
-    font-weight: 300;
+    font-weight: var(--weight);
     line-height: 1.6;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
   }
   a { color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .skip {
+    position: absolute; left: 1rem; top: -4rem; z-index: 10;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--control);
+    border-radius: 8px; padding: 0.5rem 0.9rem; text-decoration: none;
+  }
+  .skip:focus { top: 1rem; }
+  .toolbar {
+    display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem 1.25rem;
+    flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem;
+  }
+  .toolbar label { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .toolbar select, .toolbar input[type="checkbox"] { accent-color: var(--accent); }
+  .toolbar select {
+    font: inherit; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--control); border-radius: 8px; padding: 0.3rem 0.5rem; min-height: 24px;
+  }
+  .toolbar input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin: 0; }
   .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 16px 4rem; }
   header { text-align: center; margin-bottom: 2rem; }
   header h1 {
-    font-weight: 300;
+    font-weight: var(--weight);
     font-size: clamp(1.9rem, 5vw, 2.6rem);
     letter-spacing: 0.06em;
     margin: 0 0 0.25rem;
@@ -95,7 +144,7 @@
   }
   .address b { font-weight: 400; color: var(--ink); font-variant-numeric: tabular-nums; }
   .hall { text-align: center; margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--muted); }
-  .hall button { font-size: inherit; padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-decoration: underline dotted; font-family: inherit; }
+  .hall button { font-size: inherit; padding: 0.25rem 0.45rem; margin: -0.25rem 0; min-height: 24px; min-width: 24px; border: 0; background: none; color: var(--accent); cursor: pointer; text-decoration: underline dotted; font-family: inherit; line-height: 1.4; }
   .shape { display: none; margin: 0.75rem auto 0; max-width: 32rem; font-size: 0.85rem; color: var(--muted); text-align: center; line-height: 1.7; }
   .shape.open { display: block; }
   .shape code { font-family: inherit; color: var(--ink); }
@@ -106,7 +155,7 @@
     font-size: 0.95rem;
     padding: 0.55rem 1.05rem;
     border-radius: 999px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--control);
     background: var(--paper);
     color: var(--ink);
     cursor: pointer;
@@ -114,10 +163,10 @@
   }
   .btn:hover { border-color: var(--accent); }
   .btn:active { transform: translateY(1px); }
-  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .btn.quiet { border-color: transparent; color: var(--muted); }
-  .btn.quiet:hover { color: var(--ink); border-color: var(--line); }
+  .btn.quiet:hover { color: var(--ink); border-color: var(--control); }
+  :root[data-theme="contrast"] .btn.quiet { border-color: var(--control); }
 
   .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: stretch; }
   input[type="text"], textarea {
@@ -125,19 +174,19 @@
     font-size: 0.95rem;
     color: var(--ink);
     background: var(--paper);
-    border: 1px solid var(--line);
+    border: 1px solid var(--control);
     border-radius: 10px;
     padding: 0.6rem 0.8rem;
     width: 100%;
     min-width: 0;
   }
-  input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  ::placeholder { color: var(--muted); opacity: 1; }
   .row input { flex: 1 1 14rem; }
   textarea { resize: vertical; min-height: 5.2em; }
 
   section { margin-top: 2.5rem; }
   section h2 {
-    font-weight: 300;
+    font-weight: var(--weight);
     font-size: 1.1rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -161,7 +210,8 @@
   .status.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   details { border-top: 1px solid var(--line); padding: 0.9rem 0; }
-  details summary { cursor: pointer; color: var(--ink); font-weight: 300; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details summary { cursor: pointer; color: var(--ink); font-weight: var(--weight); list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 0.2rem 0; }
+  details summary h2 { font: inherit; letter-spacing: 0; text-transform: none; color: inherit; margin: 0; }
   details summary::-webkit-details-marker { display: none; }
   details summary::after { content: "+"; color: var(--muted); }
   details[open] summary::after { content: "−"; }
@@ -173,6 +223,15 @@
   kbd { font: inherit; font-size: 0.8em; border: 1px solid var(--line); border-radius: 4px; padding: 0 0.35em; }
   footer { margin-top: 3rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+  /* Windows High Contrast and other forced-colour modes. */
+  @media (forced-colors: active) {
+    .status { border: 1px solid CanvasText; }
+    .btn, .toolbar select, input[type="text"], textarea { border: 1px solid ButtonText; }
+    :focus-visible { outline-color: Highlight; }
+  }
   @media (max-width: 480px) {
     .card { padding: 1.75rem 1rem 1.25rem; }
     .controls .btn { flex: 1 1 auto; }
@@ -180,23 +239,35 @@
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to the haiku</a>
 <div class="wrap">
   <header>
+    <div class="toolbar">
+      <label for="themeSel">Display
+        <select id="themeSel">
+          <option value="system">Match system</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="contrast">High contrast</option>
+        </select>
+      </label>
+      <label for="keyR"><input type="checkbox" id="keyR" checked> Key <kbd>r</kbd> wanders</label>
+    </div>
     <h1>Every Haiku</h1>
     <p class="tag">a haiku slice of the infinite library</p>
     <p class="count">This library holds <b id="total"></b> haikus. Every one of them has an address.</p>
   </header>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="card">
       <p class="haiku" id="haiku" aria-live="polite" aria-atomic="true"></p>
       <p class="address">No. <b id="addr"></b></p>
-      <p class="hall">Hall <span id="hallNo"></span> of <span id="hallTotal"></span> · <button type="button" id="shapeBtn" aria-expanded="false">shape</button></p>
+      <p class="hall">Hall <span id="hallNo"></span> of <span id="hallTotal"></span> · <button type="button" id="shapeBtn" aria-expanded="false" aria-controls="shape">shape</button></p>
       <div class="shape" id="shape"></div>
       <div class="controls">
-        <button class="btn" id="prevBtn" title="Previous address (←)">← Previous</button>
+        <button class="btn" id="prevBtn" title="Previous address (left arrow)"><span aria-hidden="true">← </span>Previous</button>
         <button class="btn primary" id="wanderBtn" title="Open a random shelf (R)">Wander</button>
-        <button class="btn" id="nextBtn" title="Next address (→)">Next →</button>
+        <button class="btn" id="nextBtn" title="Next address (right arrow)">Next<span aria-hidden="true"> →</span></button>
       </div>
       <div class="controls">
         <button class="btn quiet" id="copyBtn">Copy haiku</button>
@@ -212,7 +283,7 @@
         <input type="text" id="gotoInput" inputmode="numeric" placeholder="Any number from 1 to the total" autocomplete="off">
         <button class="btn" type="submit">Open</button>
       </form>
-      <p class="hint">Neighbouring addresses differ by a single word. Walk with <kbd>←</kbd> and <kbd>→</kbd>.</p>
+      <p class="hint">Neighbouring addresses differ by a single word. Walk with the <kbd aria-label="left arrow">←</kbd> and <kbd aria-label="right arrow">→</kbd> keys.</p>
     </section>
 
     <section>
@@ -223,12 +294,12 @@
         <button class="btn" id="searchBtn">Find</button>
         <button class="btn quiet" id="againBtn" hidden>Find another</button>
       </div>
-      <div class="result" id="result"></div>
+      <div class="result" id="result" aria-live="polite"></div>
     </section>
 
     <section>
       <details>
-        <summary>How the library is built</summary>
+        <summary><h2>How the library is built</h2></summary>
         <div class="body">
           <p>Nothing here is stored. A haiku is computed from its address and the address is computed from the haiku, so the whole library fits in one small file and a page can never be lost.</p>
           <p>The library has a vocabulary of a few hundred words, each sorted by its syllable count, and a set of line shapes: twenty for five-syllable lines and twenty-two for seven. A hall is one choice of shape for each of the three lines, so there are <span id="hallsInline"></span> halls. Inside a hall the words turn over like the digits of an odometer, last slot fastest, which is why walking to the next address changes one word.</p>
@@ -238,7 +309,7 @@
         </div>
       </details>
       <details>
-        <summary>The vocabulary</summary>
+        <summary><h2>The vocabulary</h2></summary>
         <div class="body"><div class="vocab" id="vocab"></div></div>
       </details>
     </section>
@@ -248,7 +319,7 @@
     <a href="https://github.com/bshepp/every-haiku" rel="noopener">Source</a> · MIT
   </footer>
 </div>
-<div class="status" id="status" role="status"></div>
+<div class="status" id="status" role="status" aria-live="polite"></div>
 
 <script src="library.js"></script>
 <script>
@@ -384,7 +455,8 @@
     out.querySelector("a.n").addEventListener("click", (e) => {
       e.preventDefault();
       show(n);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
     });
   }
 
@@ -409,8 +481,27 @@
     if (tag === "input" || tag === "textarea") return;
     if (e.key === "ArrowLeft") $("prevBtn").click();
     else if (e.key === "ArrowRight") $("nextBtn").click();
-    else if (e.key === "r" || e.key === "R") $("wanderBtn").click();
+    else if ((e.key === "r" || e.key === "R") && $("keyR").checked) $("wanderBtn").click();
   });
+
+  // Display preference: match system, light, dark or high contrast.
+  const THEME_KEY = "every-haiku-theme";
+  const SHORTCUT_KEY = "every-haiku-key-r";
+  function applyTheme(t) {
+    if (t === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", t);
+  }
+  function readPref(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function writePref(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* fine */ } }
+  $("themeSel").value = readPref(THEME_KEY) || "system";
+  applyTheme($("themeSel").value);
+  $("themeSel").addEventListener("change", () => {
+    applyTheme($("themeSel").value);
+    writePref(THEME_KEY, $("themeSel").value);
+  });
+  // The single-key shortcut can be switched off (WCAG 2.1.4).
+  $("keyR").checked = readPref(SHORTCUT_KEY) !== "off";
+  $("keyR").addEventListener("change", () => writePref(SHORTCUT_KEY, $("keyR").checked ? "on" : "off"));
 
   // Vocabulary listing.
   $("vocab").innerHTML = L.vocabulary().map((c) =>
