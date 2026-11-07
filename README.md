@@ -14,13 +14,16 @@ no dependencies, no accounts, and no cost to run.
 ## What you can do
 
 - **Wander.** Open a random shelf. Every grammatical shape is equally likely.
+  Press `r` to wander again.
 - **Walk.** Step to the previous or next address with the arrow keys.
   Neighbouring haikus differ by a single word.
-- **Open an address.** Type any number from 1 to the total.
+- **Open an address.** Type any number from 1 to the total. `5000`,
+  `5,000`, `No. 5,000` and `#5000` all open the same shelf.
 - **Search.** Paste a phrase and the library finds a haiku that contains it,
   then gives you its address. Paste a whole haiku on three lines and it tells
-  you exactly where that poem is shelved. Search for a word the library does
-  not know and it says so.
+  you exactly where that poem is shelved. If one of the lines does not fit
+  any shape in the library, it tells you which line and why. Search for a
+  word the library does not know and it says so.
 - **Share.** Every address is a permalink: `…/#1234567890`.
 
 ## How the library is built
@@ -74,15 +77,18 @@ The tests check the syllable arithmetic of every template, that halls tile the
 address space with no gaps, that decoding an address and locating the result
 returns the same address (including at hall boundaries and for the first and
 last address), that article agreement (`a` / `an`) survives the round trip,
-and that search behaves on phrases, whole haikus, unknown words and impossible
-orderings. Node 20 or later, no packages.
+that decoding rejects anything that is not an address, and that search
+behaves on phrases, whole haikus, mis-shaped haikus, unknown words and
+impossible orderings. Node 20 or later, no packages.
 
 ## Deploy it
 
 Pushes to `master` run the tests and deploy `public/` to GitHub Pages through
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml). In the repository
-settings under **Pages**, set the source to **GitHub Actions** once. Any other
-static host works too: upload the two files in `public/`.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml). On a fresh fork,
+set the Pages source to **GitHub Actions** once, in the repository settings
+under **Pages**; the workflow's token is not allowed to create the Pages site
+itself, so the first deploy fails until that is done. Any other static host
+works too: upload the two files in `public/`.
 
 ## Extend the vocabulary
 
