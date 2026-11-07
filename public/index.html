@@ -234,7 +234,12 @@
   }
   @media (max-width: 480px) {
     .card { padding: 1.75rem 1rem 1.25rem; }
-    .controls .btn { flex: 1 1 auto; }
+    /* Previous / Wander / Next stay on one line as three equal columns, without
+       the decorative arrows. The secondary row wraps as it needs to. */
+    .controls.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .controls.nav .btn { padding: 0.55rem 0.4rem; min-width: 0; white-space: nowrap; }
+    .controls.nav .btn span[aria-hidden] { display: none; }
+    .controls:not(.nav) .btn { flex: 1 1 auto; }
   }
 </style>
 </head>
@@ -264,7 +269,7 @@
       <p class="address">No. <b id="addr"></b></p>
       <p class="hall">Hall <span id="hallNo"></span> of <span id="hallTotal"></span> · <button type="button" id="shapeBtn" aria-expanded="false" aria-controls="shape">shape</button></p>
       <div class="shape" id="shape"></div>
-      <div class="controls">
+      <div class="controls nav">
         <button class="btn" id="prevBtn" title="Previous address (left arrow)"><span aria-hidden="true">← </span>Previous</button>
         <button class="btn primary" id="wanderBtn" title="Open a random shelf (R)">Wander</button>
         <button class="btn" id="nextBtn" title="Next address (right arrow)">Next<span aria-hidden="true"> →</span></button>
