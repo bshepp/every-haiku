@@ -69,6 +69,10 @@ The core lives in [`public/library.js`](public/library.js) and runs unchanged
 in the browser and in Node. The page in [`public/index.html`](public/index.html)
 is plain HTML, CSS and JavaScript.
 
+The long version, with the mathematics and a line-by-line walk through the
+code that turns an address into a haiku and back, is in
+[`docs/how-it-works.md`](docs/how-it-works.md).
+
 ## Run it
 
 Open `public/index.html` in a browser. That is the whole deployment.

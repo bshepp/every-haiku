@@ -5,6 +5,12 @@ address space is part of the contract: a change to the vocabulary or the line
 shapes renumbers every haiku, and would be a new major version or a new
 edition rather than a patch.
 
+## Unreleased
+
+### Added
+- `docs/how-it-works.md`: the mathematics of the library and a line-by-line
+  walk through `decode`, `encode` and `locate`, with a worked example.
+
 ## 3.1.0 — 2026-11-07
 
 Accessibility, display themes, and review follow-ups. No change to the
